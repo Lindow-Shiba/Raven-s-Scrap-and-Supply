@@ -6,6 +6,10 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
+const [priceMap,setPriceMap]=useState({});
+useEffect(()=>{(async()=>{const {data,error}=await supabase.from('materials').select('name,price');if(!error){setPriceMap(Object.fromEntries(data.map(r=>[r.name,r.price])));}})();},[]);
+
+
 const catalogue={
   'Car Internals':['Axle Parts','Body Repair Tools','Brake Pads','Clutch Kits','Fuel Straps','Radiator Part','Suspension Parts','Tire Repair Kit','Transmission Parts','Wires'],
   'Materials':['Aluminium','Battery','Carbon','Clutch Fluid','Coil Spring','Copper','Copper Wires','Electronics','Graphite','Iron','Laminated Plastic','Lead','Multi-Purpose Grease','Paint Thinner','Plastic','Polymer','Polyethylene','Rubber','Rusted Metal','Scrap Metal','Silicone','Stainless Steel','Steel','Timing Belt','Gun Powder','Iron Ore'],
@@ -106,6 +110,7 @@ const download = async () => {
             <input placeholder='Notes' value={notes} onChange={e=>setNotes(e.target.value)} style={{padding:8}}/>
             <button onClick={download} style={{padding:10,background:'#d1b07b',color:'#000',border:'none',fontWeight:600}}>Download Invoice</button>
           </footer>
+<div style={{textAlign:'right',padding:'8px 16px',fontWeight:600}}>Total Price $ {items.reduce((s,it)=>s+((it.qty||0)*(priceMap[it.name]||0)),0).toFixed(2)}</div>
         </section>
         <section style={{flex:2,padding:16}}>
           {Object.entries(catalogue).map(([cat,items])=>(
@@ -172,17 +177,3 @@ function DatabasePage(){
     </table>
   </main>;
 }
-
-const submit = async () => {
-  try {
-    await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: `Invoice ${inv} submitted` })
-    });
-    alert('Invoice submitted');
-  } catch (err) {
-    console.error('Discord webhook failed', err);
-    alert('Invoice submitted, but Discord notification failed.');
-  }
-};
