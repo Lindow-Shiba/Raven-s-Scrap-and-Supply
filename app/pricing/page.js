@@ -45,19 +45,19 @@ export default function PricingPage() {
   if (!unlocked) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-white gap-4">
-        <h1 className="text-2xl">Enter Admin Password</h1>
+        <h1 className="text-lg text-amber-400">Enter Admin Password</h1>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="p-2 bg-black border border-gray-700"
+          className="w-48 p-2 bg-black border border-gray-700 text-center"
         />
         <button
           onClick={() => {
             if (password === 'RavenAdmin') setUnlocked(true);
             else console.error('Incorrect password');
           }}
-          className="px-4 py-2 bg-amber-700"
+          className="bg-amber-700 px-6 py-1 text-sm"
         >
           Unlock
         </button>
