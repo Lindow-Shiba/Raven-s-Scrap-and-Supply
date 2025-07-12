@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import toast from 'react-hot-toast';
 
 export default function EmployeeDatabase() {
   const [unlocked, setUnlocked] = useState(false);
@@ -21,7 +20,7 @@ export default function EmployeeDatabase() {
         <button
           onClick={() => {
             if (password === 'RavenAdmin') setUnlocked(true);
-            else toast.error('Wrong password');
+            else console.error('Wrong password');
           }}
           className="px-4 py-2 bg-amber-700"
         >
@@ -40,7 +39,7 @@ export default function EmployeeDatabase() {
 
   async function fetchRows() {
     const { data, error } = await supabase.from('employees').select('*').order('name');
-    if (error) toast.error(error.message);
+    if (error) console.error(error.message);
     else setRows(data);
     setLoading(false);
   }
@@ -50,8 +49,8 @@ export default function EmployeeDatabase() {
       .from('employees')
       .update({ commission_pct })
       .eq('id', id);
-    if (error) toast.error(error.message);
-    else toast.success('Saved \u2713');
+    if (error) console.error(error.message);
+    else console.log('Saved \u2713');
   }
 
   const COMMISSION_OPTIONS = [0.75, 0.8, 0.85, 0.9];
