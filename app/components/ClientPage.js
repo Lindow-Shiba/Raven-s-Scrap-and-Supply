@@ -46,15 +46,7 @@ const download = async () => {
   fetch('/api/submitInvoice', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: 'Raven Invoices',
-      embeds: [{
-        title: `Invoice ${inv}`,
-        color: 0xd1b07b,
-        fields: [
-          { name: 'Employee', value: who || '—', inline: true },
-          { name: 'Warehouse', value: wh || '—', inline: true },
-          { name: 'Date', value: new Date().toLocaleString(), inline: false },
+    body: JSON.stringify({ inv: invoiceId, lines: items.filter(i => i.qty > 0).map(i => `${i.name} × ${i.qty} - $${((priceMap[i.name] || 0) * i.qty).toFixed(2)}`), total: items.reduce((sum, i) => sum + ((priceMap[i.name] || 0) * i.qty), 0).toFixed(2) }).toLocaleString(), inline: false },
           { name: 'Items', value: summary, inline: false }
         ]
       }]
@@ -233,7 +225,7 @@ const embed = {
 await fetch('/api/submitInvoice', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ embeds: [embed] })
+  body: JSON.stringify({ inv: invoiceId, lines: items.filter(i => i.qty > 0).map(i => `${i.name} × ${i.qty} - $${((priceMap[i.name] || 0) * i.qty).toFixed(2)}`), total: items.reduce((sum, i) => sum + ((priceMap[i.name] || 0) * i.qty), 0).toFixed(2) })
 });
     alert('Invoice submitted');
   } catch (err) {
