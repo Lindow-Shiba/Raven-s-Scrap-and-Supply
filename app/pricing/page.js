@@ -1,0 +1,65 @@
+
+'use client';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
+
+export default function PricingPage() {
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  async function fetchMaterials() {
+    const { data, error } = await supabase.from('materials').select('*').order('name');
+    if (error) setError(error);
+    else setMaterials(data);
+    setLoading(false);
+  }
+
+  async function handleChange(id, field, value) {
+    const newMaterials = materials.map((row) => row.id === id ? { ...row, [field]: value } : row);
+    setMaterials(newMaterials);
+  }
+
+  async function handleBlur(id, name, price) {
+    const { error } = await supabase.from('materials').update({ name, price }).eq('id', id);
+    if (error) setError(error);
+  }
+
+  async function addRow() {
+    const { data, error } = await supabase.from('materials').insert({ name: '', price: 0 }).select().single();
+    if (!error && data) setMaterials([...materials, data]);
+  }
+
+  if (loading) return <p className="text-white p-4">Loading...</p>;
+  if (error) return <p className="text-red-500 p-4">Error: {error.message}</p>;
+
+  return (
+    <div className="p-8 text-white">
+      <h1 className="text-2xl mb-4">Materials Pricing</h1>
+      <div className="max-w-xl">
+        {materials.map((row) => (
+          <div key={row.id} className="flex mb-2">
+            <input
+              value={row.name || ''}
+              onChange={(e) => handleChange(row.id, 'name', e.target.value)}
+              onBlur={() => handleBlur(row.id, row.name, row.price)}
+              className="flex-1 bg-black border border-gray-700 p-2 mr-2"
+            />
+            <input
+              type="number"
+              value={row.price || 0}
+              onChange={(e) => handleChange(row.id, 'price', Number(e.target.value))}
+              onBlur={() => handleBlur(row.id, row.name, row.price)}
+              className="w-32 bg-black border border-gray-700 p-2 text-right"
+            />
+          </div>
+        ))}
+        <button onClick={addRow} className="mt-4 px-4 py-2 bg-amber-700">Add Material</button>
+      </div>
+    </div>
+  );
+}
