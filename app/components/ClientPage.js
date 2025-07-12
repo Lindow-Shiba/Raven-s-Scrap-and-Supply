@@ -43,7 +43,7 @@ const download = async () => {
   // discord webhook
   const summary = Object.entries(cart).filter(([, q]) => q > 0).map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
-  fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+  fetch('/api/submitInvoice', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -230,7 +230,7 @@ const embed = {
   timestamp: new Date().toISOString()
 };
 
-await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+await fetch('/api/submitInvoice', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ embeds: [embed] })
