@@ -13,6 +13,7 @@ const catalogue={
 };
 
 export default function Home(){
+  const leftRef=useRef(null);
   const [page,setPage]=useState('materials');
   const [cart,setCart]=useState({});
   const [names,setNames]=useState([]);
@@ -28,7 +29,15 @@ export default function Home(){
   const del=id=>setCart(({[id]:_,...r})=>r);
   const setQty=(id,q)=>setCart(c=>q>0?({...c,[id]:q}):({...c,[id]:undefined}));
 
-  const download=async()=>{const el=document.getElementById('receipt');if(!el)return;const c=await html2canvas(el,{background:'#fff'});const a=document.createElement('a');a.href=c.toDataURL();a.download=`${inv}.png`;a.click();};
+  const download = async () => {
+    const node = leftRef.current;
+    if(!node) return;
+    const canvas = await html2canvas(node,{background:'#fff'});
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download='invoice.png';
+    a.click();
+  };);const a=document.createElement('a');a.href=c.toDataURL();a.download=`${inv}.png`;a.click();};
   const nav=act=>({padding:'6px 12px',background:act?'#d1b07b':'transparent',color:act?'#000':'#d1b07b',border:'1px solid #d1b07b',cursor:'pointer'});
 
   return(<div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
@@ -43,7 +52,7 @@ export default function Home(){
 
     {page==='materials'&&(
       <div style={{flex:1,display:'flex'}}>
-        <section style={{flex:'1 0 320px',borderRight:'1px solid #d1b07b',padding:16,display:'flex',flexDirection:'column'}}>
+        <section ref={leftRef} style={{flex:'1 0 320px',borderRight:'1px solid #d1b07b',padding:16,display:'flex',flexDirection:'column'}}>
           <h2>Receipt</h2>
           <table style={{width:'100%',fontSize:14}}>
             <thead><tr><th>Item</th><th style={{width:60}}>Qty</th><th/></tr></thead>
