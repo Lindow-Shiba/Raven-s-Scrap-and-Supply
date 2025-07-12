@@ -29,15 +29,42 @@ export default function Home(){
   const setQty=(id,q)=>setCart(c=>q>0?({...c,[id]:q}):({...c,[id]:undefined}));
 
   
-  const download = async () => {
-    const el = document.getElementById('left-panel');   // Use a wrapper with full left column
-    if (!el) return;
-    const canvas = await html2canvas(el, { backgroundColor: '#fff' });
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = `${inv}.png`;
-    a.click();
-  };
+  
+const download = async () => {
+  const el = document.getElementById('left-panel');
+  if (!el) return;
+  const canvas = await html2canvas(el, { backgroundColor: '#fff' });
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');
+  link.download = `${inv}.png`;
+  link.click();
+
+  // discord webhook
+  const summary = Object.entries(cart)
+    .filter(([, q]) => q > 0)
+    .map(([item, q]) => `• **${item}** × ${q}`)
+    .join('
+') || 'No items';
+
+  fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: 'Raven Invoices',
+      embeds: [{
+        title: `Invoice ${inv}`,
+        color: 0xd1b07b,
+        fields: [
+          { name: 'Employee', value: who || '—', inline: true },
+          { name: 'Warehouse', value: wh || '—', inline: true },
+          { name: 'Date', value: new Date().toLocaleString(), inline: false },
+          { name: 'Items', value: summary, inline: false }
+        ]
+      }]
+    })
+  });
+};
+
 
   const nav=act=>({padding:'6px 12px',background:act?'#d1b07b':'transparent',color:act?'#000':'#d1b07b',border:'1px solid #d1b07b',cursor:'pointer'});
 
@@ -120,7 +147,7 @@ function DatabasePage(){
   const [rows,setRows]=useState([]);
   const [name,setName]=useState('');const [cid,setCid]=useState('');
   const load=()=>supabase.from('employees').select('*').order('id',{ascending:false}).then(({data})=>setRows(data||[]));
-  useEffect(() => { let alive=true; const fetch=async()=>{ const {data}=await supabase.from('employees').select('*').order('id',{ascending:false}); if(alive) setRows(data||[]);}; fetch(); return ()=>{alive=false;}; },[]);
+  useEffect(load,[]);
   const add=async()=>{if(!name||!cid)return;await supabase.from('employees').insert({name,cid});setName('');setCid('');load();};
   const upd=async(id,field,val)=>{await supabase.from('employees').update({[field]:val}).eq('id',id);};
   const del=async(id)=>{await supabase.from('employees').delete().eq('id',id);load();};
