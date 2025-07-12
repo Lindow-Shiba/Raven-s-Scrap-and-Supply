@@ -56,7 +56,11 @@ export default function Home(){
         <section id='left-panel' style={{flex:'1 0 320px',borderRight:'1px solid #d1b07b',padding:16,display:'flex',flexDirection:'column'}}>
           <h2>Receipt</h2>
           <table style={{width:'100%',fontSize:14}}>
-            <thead><tr><th style={{textAlign:'left'}}>Item</th><th style={{textAlign:'right'}}>Qty</th><th/></tr></thead>
+            <thead><tr>
+      <th style={{ textAlign:'left' }}>Item</th>
+      <th style={{ textAlign:'center', width:60 }}>Qty</th>
+      <th style={{ width:30 }}></th>
+    </tr></thead>
             <tbody>
               {Object.entries(cart).filter(([,q])=>q>0).map(([id,q])=>(
                 <tr key={id}>
@@ -129,7 +133,11 @@ function DatabasePage(){
       <button onClick={add} style={{padding:'6px 12px',background:'#d1b07b',border:'none',color:'#000'}}>Add</button>
     </div>
     <table style={{width:'100%',fontSize:14}}>
-      <thead><tr><th>ID</th><th style={{textAlign:'left',width:240}}>Name</th><th style={{textAlign:'left',width:120}}>CID</th><th/></tr></thead>
+      <thead><tr>
+      <th style={{ textAlign:'left' }}>Item</th>
+      <th style={{ textAlign:'center', width:60 }}>Qty</th>
+      <th style={{ width:30 }}></th>
+    </tr></thead>
       <tbody>
         {rows.map(r=><tr key={r.id}>
           <td>{r.id}</td>
