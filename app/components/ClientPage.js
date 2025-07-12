@@ -206,12 +206,9 @@ const submit = async () => {
     (sum, it) => sum + ((it.qty || 0) * (priceMap[it.name] || 0)),
     0
   ).toFixed(2);
-  lines.push(`
-__**Total: $${grandTotal}**__`);
+  lines.push(`\n__**Total: $${grandTotal}**__`);
 
-  console.log('Discord payload:
-', lines.join('
-'));
+  console.log('Discord payload:\n' + lines.join('\n'));
 
   // 5. Post to Discord
   try {
