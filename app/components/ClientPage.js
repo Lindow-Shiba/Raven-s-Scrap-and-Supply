@@ -222,11 +222,21 @@ const embed = {
   timestamp: new Date().toISOString()
 };
 
+
+const lines = items
+  .filter(i => i.qty > 0)
+  .map(i => `${i.name} × ${i.qty} - $${((priceMap[i.name] || 0) * i.qty).toFixed(2)}`);
+
+const total = items
+  .reduce((sum, i) => sum + ((priceMap[i.name] || 0) * i.qty), 0)
+  .toFixed(2);
+
 await fetch('/api/submitInvoice', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ inv: invoiceId, lines: items.filter(i => i.qty > 0).map(i => `${i.name} × ${i.qty} - $${((priceMap[i.name] || 0) * i.qty).toFixed(2)}`), total: items.reduce((sum, i) => sum + ((priceMap[i.name] || 0) * i.qty), 0).toFixed(2) })
+  body: JSON.stringify({ inv: invoiceId, lines, total }),
 });
+
     alert('Invoice submitted');
   } catch (err) {
     console.error('Discord webhook failed', err);
