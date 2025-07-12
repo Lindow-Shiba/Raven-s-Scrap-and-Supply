@@ -1,6 +1,6 @@
 {
   "name": "raven-scrap-supply",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -12,6 +12,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "html2canvas": "^1.4.1",
-    "lucide-react": "^0.268.0"
+    "lucide-react": "^0.268.0",
+    "@supabase/supabase-js": "^2.39.5"
   }
 }
