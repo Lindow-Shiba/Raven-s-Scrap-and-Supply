@@ -40,8 +40,7 @@ const download = async () => {
   link.click();
 
   // discord webhook
-  const summary = Object.entries(cart).filter(([, q]) => q > 0).map(([item, q]) => `• **${item}** × ${q}`).join('
-') || 'No items';
+  const summary = Object.entries(cart).filter(([, q]) => q > 0).map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
   fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
     method: 'POST',
