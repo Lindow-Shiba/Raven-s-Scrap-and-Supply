@@ -212,15 +212,32 @@ const submit = async () => {
 
   // 5. Post to Discord
   try {
-    await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: lines.join('\\n') })
-    });
+// build embed payload
+const embed = {
+  title: `Invoice ${inv}`,
+  color: 0x00b0f4,
+  fields: [
+    {
+      name: 'Items',
+      value: lines.join('\n') || '—'
+    },
+    {
+      name: 'Total',
+      value: `$${grandTotal}`,
+      inline: true
+    }
+  ],
+  timestamp: new Date().toISOString()
+};
+
+await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ embeds: [embed] })
+});
     alert('Invoice submitted');
   } catch (err) {
     console.error('Discord webhook failed', err);
     alert('Invoice submitted, but Discord notification failed.');
   }
 };
-
