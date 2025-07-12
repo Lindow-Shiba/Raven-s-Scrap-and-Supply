@@ -14,6 +14,7 @@ const catalogue={
 
 export default function Home(){
   const [page,setPage]=useState('materials');
+const [priceMap, setPriceMap] = useState({});
   const [cart,setCart]=useState({});
   const [names,setNames]=useState([]);
   const [who,setWho]=useState('');
@@ -172,3 +173,38 @@ function DatabasePage(){
     </table>
   </main>;
 }
+
+
+const submit = async () => {
+  if (!Object.keys(priceMap).length) {
+    alert('Still loading prices from Supabase – please wait a second and try again.');
+    return;
+  }
+  const lines = items
+    .filter(it => (it.qty || 0) > 0)
+    .map(it => {
+      const unit = priceMap[it.name] || 0;
+      const subtotal = (unit * it.qty).toFixed(2);
+      return `${it.name} × ${it.qty} — $${unit.toFixed(2)} ea = **$${subtotal}**`;
+    });
+
+  const grandTotal = items.reduce(
+    (sum, it) => sum + ((it.qty || 0) * (priceMap[it.name] || 0)),
+    0
+  ).toFixed(2);
+
+  lines.push(`\n__**Total: $${grandTotal}**__`);
+
+  try {
+    await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: lines.join('\n') })
+    });
+    alert('Invoice submitted');
+  } catch (err) {
+    console.error('Discord webhook failed', err);
+    alert('Invoice submitted, but Discord notification failed.');
+  }
+};
+
