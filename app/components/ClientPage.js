@@ -230,22 +230,6 @@ const embed = {
   timestamp: new Date().toISOString()
 };
 
-
-// Debug: see payload in console
-const payload = {
-  embeds: [
-    {
-      title: `Invoice ${inv}`,
-      color: 0x00b0f4,
-      fields: [
-        { name: 'Items', value: lines.join('\n') || '—' },
-        { name: 'Total', value: `$${grandTotal}`, inline: true }
-      ],
-      timestamp: new Date().toISOString()
-    }
-  ]
-};
-console.log('Webhook payload', payload);
 await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
