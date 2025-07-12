@@ -104,7 +104,7 @@ const download = async () => {
             </select>
             <input value={inv} onChange={e=>setInv(e.target.value)} style={{padding:8}}/>
             <input placeholder='Notes' value={notes} onChange={e=>setNotes(e.target.value)} style={{padding:8}}/>
-            <button onClick={()=>{alert('Invoice submitted');}} style={{padding:10,background:'#d1b07b',color:'#000',border:'none',fontWeight:600}}>Submit Invoice</button>
+            <button onClick={download} style={{padding:10,background:'#d1b07b',color:'#000',border:'none',fontWeight:600}}>Download Invoice</button>
           </footer>
         </section>
         <section style={{flex:2,padding:16}}>
@@ -172,3 +172,17 @@ function DatabasePage(){
     </table>
   </main>;
 }
+
+const submit = async () => {
+  try {
+    await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: `Invoice ${inv} submitted` })
+    });
+    alert('Invoice submitted');
+  } catch (err) {
+    console.error('Discord webhook failed', err);
+    alert('Invoice submitted, but Discord notification failed.');
+  }
+};
