@@ -70,7 +70,7 @@ const download = async () => {
       <h1 style={{fontSize:28,fontWeight:700}}>Raven's Scrap & Supply</h1>
       <div style={{marginLeft:'auto',display:'flex',gap:8}}>
         <button style={nav(page==='materials')} onClick={()=>setPage('materials')}>Materials</button>
-        <button style={nav(page==='database')} onClick={()=>setPage('database')}>Database</button>
+        <button style={nav(page==='database')} onClick={()=>setPage('database')}>Database</button>\n        <button style={nav(page==='pricing')} onClick={()=>window.location='/pricing'}>Pricing</button>
       </div>
     </header>
 

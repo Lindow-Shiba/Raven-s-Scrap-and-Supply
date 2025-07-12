@@ -4,6 +4,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 export default function PricingPage() {
+  const [allowed,setAllowed]=useState(false);
+  const [pw,setPw]=useState('');
+  if(!allowed){
+    return (
+      <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',gap:16,height:'100vh',color:'#d1b07b'}}>
+        <h2>Enter Admin Password</h2>
+        <input type='password' value={pw} onChange={e=>setPw(e.target.value)} placeholder='Password…' style={{padding:8,color:'#000'}}/>
+        <button onClick={()=>{pw==='RavenAdmin' ? setAllowed(true):alert('Wrong password');}} style={{padding:'6px 12px',background:'#d1b07b',border:'none',color:'#000'}}>Unlock</button>
+      </div>
+    );
+  }
+
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,25 +32,23 @@ export default function PricingPage() {
   }
 
   async function handleChange(id, field, value) {
-    const newMaterials = materials.map((row) => row.id === id ? { ...row, [field]: value } : row);
-    setMaterials(newMaterials);
+    setMaterials(mat=>mat.map((row)=>row.id===id?{...row,[field]:value}:row));
   }
 
   async function handleBlur(id, name, price) {
-    const { error } = await supabase.from('materials').update({ name, price }).eq('id', id);
-    if (error) setError(error);
+    await supabase.from('materials').update({ name, price }).eq('id', id);
   }
 
   async function addRow() {
-    const { data, error } = await supabase.from('materials').insert({ name: '', price: 0 }).select().single();
-    if (!error && data) setMaterials([...materials, data]);
+    const { data } = await supabase.from('materials').insert({ name: '', price: 0 }).select().single();
+    if (data) setMaterials([...materials, data]);
   }
 
   if (loading) return <p className="text-white p-4">Loading...</p>;
   if (error) return <p className="text-red-500 p-4">Error: {error.message}</p>;
 
   return (
-    <div className="p-8 text-white">
+    <div className="p-8 text-white min-h-screen">
       <h1 className="text-2xl mb-4">Materials Pricing</h1>
       <div className="max-w-xl">
         {materials.map((row) => (
