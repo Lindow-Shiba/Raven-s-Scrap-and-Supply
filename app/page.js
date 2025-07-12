@@ -70,7 +70,7 @@ const download = async () => {
       <h1 style={{fontSize:28,fontWeight:700}}>Raven's Scrap & Supply</h1>
       <div style={{marginLeft:'auto',display:'flex',gap:8}}>
         <button style={nav(page==='materials')} onClick={()=>setPage('materials')}>Materials</button>
-        <button style={nav(page==='database')} onClick={()=>setPage('database')}>Database</button>\n        <button style={nav(page==='pricing')} onClick={()=>window.location='/pricing'}>Pricing</button>
+        <button style={nav(page==='database')} onClick={()=>setPage('database')}>Database</button>
       </div>
     </header>
 
@@ -104,7 +104,7 @@ const download = async () => {
             </select>
             <input value={inv} onChange={e=>setInv(e.target.value)} style={{padding:8}}/>
             <input placeholder='Notes' value={notes} onChange={e=>setNotes(e.target.value)} style={{padding:8}}/>
-            <button onClick={download} style={{padding:10,background:'#d1b07b',color:'#000',border:'none',fontWeight:600}}>Download Invoice</button>
+            <button onClick={()=>{alert('Invoice submitted');}} style={{padding:10,background:'#d1b07b',color:'#000',border:'none',fontWeight:600}}>Submit Invoice</button>
           </footer>
         </section>
         <section style={{flex:2,padding:16}}>

@@ -1,8 +1,1 @@
 body{margin:0;font-family:sans-serif;background:#000;color:#d1b07b;}*{box-sizing:border-box;}
-
-/* --- pricing table utilities --- */
-@layer utilities {
-  .pricing-table           { @apply grid grid-cols-2 gap-2; }
-  .pricing-table-header    { @apply font-bold border-b border-gray-700 pb-1 mb-2; }
-  .pricing-table-row       { @apply items-center py-1 border-b border-gray-800; }
-}
