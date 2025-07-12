@@ -120,7 +120,7 @@ function DatabasePage(){
   const [rows,setRows]=useState([]);
   const [name,setName]=useState('');const [cid,setCid]=useState('');
   const load=()=>supabase.from('employees').select('*').order('id',{ascending:false}).then(({data})=>setRows(data||[]));
-  useEffect(load,[]);
+  useEffect(() => { let alive=true; const fetch=async()=>{ const {data}=await supabase.from('employees').select('*').order('id',{ascending:false}); if(alive) setRows(data||[]);}; fetch(); return ()=>{alive=false;}; },[]);
   const add=async()=>{if(!name||!cid)return;await supabase.from('employees').insert({name,cid});setName('');setCid('');load();};
   const upd=async(id,field,val)=>{await supabase.from('employees').update({[field]:val}).eq('id',id);};
   const del=async(id)=>{await supabase.from('employees').delete().eq('id',id);load();};
