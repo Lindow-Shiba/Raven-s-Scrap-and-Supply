@@ -1,28 +1,19 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 
 export default function PricingPage() {
-  const [allowed,setAllowed]=useState(false);
-  const [pw,setPw]=useState('');
-  if(!allowed){
-    return (
-      <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',gap:16,height:'100vh',color:'#d1b07b'}}>
-        <h2>Enter Admin Password</h2>
-        <input type='password' value={pw} onChange={e=>setPw(e.target.value)} placeholder='Password…' style={{padding:8,color:'#000'}}/>
-        <button onClick={()=>{pw==='RavenAdmin' ? setAllowed(true):alert('Wrong password');}} style={{padding:'6px 12px',background:'#d1b07b',border:'none',color:'#000'}}>Unlock</button>
-      </div>
-    );
-  }
-
+  const [password, setPassword] = useState('');
+  const [unlocked, setUnlocked] = useState(false);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchMaterials();
-  }, []);
+    if (unlocked) {
+      fetchMaterials();
+    }
+  }, [unlocked]);
 
   async function fetchMaterials() {
     const { data, error } = await supabase.from('materials').select('*').order('name');
@@ -32,7 +23,10 @@ export default function PricingPage() {
   }
 
   async function handleChange(id, field, value) {
-    setMaterials(mat=>mat.map((row)=>row.id===id?{...row,[field]:value}:row));
+    const newMaterials = materials.map((row) =>
+      row.id === id ? { ...row, [field]: value } : row
+    );
+    setMaterials(newMaterials);
   }
 
   async function handleBlur(id, name, price) {
@@ -40,15 +34,42 @@ export default function PricingPage() {
   }
 
   async function addRow() {
-    const { data } = await supabase.from('materials').insert({ name: '', price: 0 }).select().single();
-    if (data) setMaterials([...materials, data]);
+    const { data, error } = await supabase
+      .from('materials')
+      .insert({ name: '', price: 0 })
+      .select()
+      .single();
+    if (!error && data) setMaterials([...materials, data]);
+  }
+
+  if (!unlocked) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-white gap-4">
+        <h1 className="text-2xl">Enter Admin Password</h1>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="p-2 bg-black border border-gray-700"
+        />
+        <button
+          onClick={() => {
+            if (password === 'RavenAdmin') setUnlocked(true);
+            else console.error('Incorrect password');
+          }}
+          className="px-4 py-2 bg-amber-700"
+        >
+          Unlock
+        </button>
+      </div>
+    );
   }
 
   if (loading) return <p className="text-white p-4">Loading...</p>;
   if (error) return <p className="text-red-500 p-4">Error: {error.message}</p>;
 
   return (
-    <div className="p-8 text-white min-h-screen">
+    <div className="p-8 text-white">
       <h1 className="text-2xl mb-4">Materials Pricing</h1>
       <div className="max-w-xl">
         {materials.map((row) => (
@@ -68,7 +89,9 @@ export default function PricingPage() {
             />
           </div>
         ))}
-        <button onClick={addRow} className="mt-4 px-4 py-2 bg-amber-700">Add Material</button>
+        <button onClick={addRow} className="mt-4 px-4 py-2 bg-amber-700">
+          Add Material
+        </button>
       </div>
     </div>
   );
