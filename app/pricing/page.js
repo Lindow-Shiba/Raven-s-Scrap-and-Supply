@@ -43,44 +43,7 @@ export default function PricingPage() {
   }
 
   if (!unlocked) {
-    
-  return (
-    <div className="p-8 text-white flex flex-col items-center">
-      <h1 className="text-2xl mb-6">Materials Pricing</h1>
-      <div className="w-full max-w-md">
-        <div className="grid grid-cols-2 gap-2 font-bold border-b border-gray-700 pb-1 mb-2">
-          <span>Material</span>
-          <span className="text-right">Price</span>
-        </div>
-        {materials.map((row) => (
-          <div
-            key={row.id}
-            className="grid grid-cols-2 gap-2 items-center py-1 border-b border-gray-800"
-          >
-            <input
-              value={row.name || ''}
-              onChange={(e) => handleChange(row.id, 'name', e.target.value)}
-              onBlur={() => handleBlur(row.id, row.name, row.price)}
-              className="bg-black border border-gray-700 p-1"
-            />
-            <input
-              type="number"
-              value={row.price || 0}
-              onChange={(e) => handleChange(row.id, 'price', Number(e.target.value))}
-              onBlur={() => handleBlur(row.id, row.name, row.price)}
-              className="bg-black border border-gray-700 p-1 text-right"
-            />
-          </div>
-        ))}
-        <button
-          onClick={addRow}
-          className="mt-3 px-4 py-1 bg-amber-700 w-full text-sm"
-        >
-          Add Material
-        </button>
-      </div>
-    </div>
-  );
+    return (
       <div className="flex flex-col items-center justify-center min-h-screen text-white gap-4">
         <h1 className="text-lg text-amber-400">Enter Admin Password</h1>
         <input
@@ -105,7 +68,6 @@ export default function PricingPage() {
   if (loading) return <p className="text-white p-4">Loading...</p>;
   if (error) return <p className="text-red-500 p-4">Error: {error.message}</p>;
 
-  
   return (
     <div className="p-8 text-white flex flex-col items-center">
       <h1 className="text-2xl mb-6">Materials Pricing</h1>
@@ -138,32 +100,6 @@ export default function PricingPage() {
           onClick={addRow}
           className="mt-3 px-4 py-1 bg-amber-700 w-full text-sm"
         >
-          Add Material
-        </button>
-      </div>
-    </div>
-  );
-    <div className="p-8 text-white">
-      <h1 className="text-2xl mb-4">Materials Pricing</h1>
-      <div className="max-w-xl">
-        {materials.map((row) => (
-          <div key={row.id} className="flex mb-2">
-            <input
-              value={row.name || ''}
-              onChange={(e) => handleChange(row.id, 'name', e.target.value)}
-              onBlur={() => handleBlur(row.id, row.name, row.price)}
-              className="flex-1 bg-black border border-gray-700 p-2 mr-2"
-            />
-            <input
-              type="number"
-              value={row.price || 0}
-              onChange={(e) => handleChange(row.id, 'price', Number(e.target.value))}
-              onBlur={() => handleBlur(row.id, row.name, row.price)}
-              className="w-32 bg-black border border-gray-700 p-2 text-right"
-            />
-          </div>
-        ))}
-        <button onClick={addRow} className="mt-4 px-4 py-2 bg-amber-700">
           Add Material
         </button>
       </div>
