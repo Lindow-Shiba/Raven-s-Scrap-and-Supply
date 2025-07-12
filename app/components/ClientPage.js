@@ -215,8 +215,7 @@ const submit = async () => {
     await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: lines.join('
-') })
+      body: JSON.stringify({ content: lines.join('\\n') })
     });
     alert('Invoice submitted');
   } catch (err) {
