@@ -176,44 +176,58 @@ function DatabasePage(){
 
 
 const submit = async () => {
+  // 1. Guard: prices must exist
   if (!Object.keys(priceMap).length) {
-    alert('Prices still loading, please wait.');
-    return;
-  }
-  if (!items.some(it => (it.qty || 0) > 0)) {
-    alert('Please enter at least one quantity.');
+    alert('Prices are still loading. Please wait a moment and try again.');
     return;
   }
 
+  // 2. Guard: at least one item has quantity
+  if (!items.some(it => (it.qty || 0) > 0)) {
+    alert('No items with quantity entered.');
+    return;
+  }
+
+  // 3. Build payload lines
   const lines = items
     .filter(it => (it.qty || 0) > 0)
     .map(it => {
-      const unit = priceMap[it.name] || 0;
-      const sub = (unit * it.qty).toFixed(2);
-      return `${it.name} × ${it.qty} — $${unit.toFixed(2)} ea = **$${sub}**`;
+      const unitPrice = priceMap[it.name];
+      if (unitPrice === undefined) {
+        console.warn(`No price for ${it.name}`);
+        return `${it.name} × ${it.qty} — PRICE NOT FOUND`;
+      }
+      const subtotal = (unitPrice * it.qty).toFixed(2);
+      return `${it.name} × ${it.qty} — $${unitPrice.toFixed(2)} ea = **$${subtotal}**`;
     });
 
+  // 4. Grand total
   const grandTotal = items.reduce(
     (sum, it) => sum + ((it.qty || 0) * (priceMap[it.name] || 0)),
     0
   ).toFixed(2);
+  lines.push(`\n__**Total: $${grandTotal}**__`);
 
-  // Call server route to avoid CORS
-  const response = await fetch('/api/submitInvoice', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      inv,
-      lines,
-      total: grandTotal
-    })
-  });
+  console.log('Discord payload:\n' + lines.join('\n'));
 
-  if (response.ok) {
-    alert('Invoice submitted and Discord notified!');
-  } else {
-    alert('Invoice submitted, but Discord notification failed.');
-  }
+  // 5. Post to Discord
+  try {
+// build embed payload
+const embed = {
+  title: `Invoice ${inv}`,
+  color: 0x00b0f4,
+  fields: [
+    {
+      name: 'Items',
+      value: lines.join('\n') || '—'
+    },
+    {
+      name: 'Total',
+      value: `$${grandTotal}`,
+      inline: true
+    }
+  ],
+  timestamp: new Date().toISOString()
 };
 
 await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
