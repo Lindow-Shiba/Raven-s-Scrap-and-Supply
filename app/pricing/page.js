@@ -69,17 +69,17 @@ export default function PricingPage() {
   if (error) return <p className="text-red-500 p-4">Error: {error.message}</p>;
 
   return (
-    <div className="p-8 text-white flex flex-col items-center">
+    <div className="p-8 text-white flex flex-col items-center justify-center">
       <h1 className="text-2xl mb-6">Materials Pricing</h1>
       <div className="w-full max-w-md">
-        <div className="grid grid-cols-2 gap-2 font-bold border-b border-gray-700 pb-1 mb-2">
+        <div className="pricing-table-header">
           <span>Material</span>
           <span className="text-right">Price</span>
         </div>
         {materials.map((row) => (
           <div
             key={row.id}
-            className="grid grid-cols-2 gap-2 items-center py-1 border-b border-gray-800"
+            className="pricing-table-row pricing-table"
           >
             <input
               value={row.name || ''}
