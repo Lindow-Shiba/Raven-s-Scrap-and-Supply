@@ -176,30 +176,50 @@ function DatabasePage(){
 
 
 const submit = async () => {
+  // 1. Guard: prices must exist
   if (!Object.keys(priceMap).length) {
-    alert('Still loading prices from Supabase – please wait a second and try again.');
+    alert('Prices are still loading. Please wait a moment and try again.');
     return;
   }
+
+  // 2. Guard: at least one item has quantity
+  if (!items.some(it => (it.qty || 0) > 0)) {
+    alert('No items with quantity entered.');
+    return;
+  }
+
+  // 3. Build payload lines
   const lines = items
     .filter(it => (it.qty || 0) > 0)
     .map(it => {
-      const unit = priceMap[it.name] || 0;
-      const subtotal = (unit * it.qty).toFixed(2);
-      return `${it.name} × ${it.qty} — $${unit.toFixed(2)} ea = **$${subtotal}**`;
+      const unitPrice = priceMap[it.name];
+      if (unitPrice === undefined) {
+        console.warn(`No price for ${it.name}`);
+        return `${it.name} × ${it.qty} — PRICE NOT FOUND`;
+      }
+      const subtotal = (unitPrice * it.qty).toFixed(2);
+      return `${it.name} × ${it.qty} — $${unitPrice.toFixed(2)} ea = **$${subtotal}**`;
     });
 
+  // 4. Grand total
   const grandTotal = items.reduce(
     (sum, it) => sum + ((it.qty || 0) * (priceMap[it.name] || 0)),
     0
   ).toFixed(2);
+  lines.push(`
+__**Total: $${grandTotal}**__`);
 
-  lines.push(`\n__**Total: $${grandTotal}**__`);
+  console.log('Discord payload:
+', lines.join('
+'));
 
+  // 5. Post to Discord
   try {
     await fetch(process.env.NEXT_PUBLIC_DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: lines.join('\n') })
+      body: JSON.stringify({ content: lines.join('
+') })
     });
     alert('Invoice submitted');
   } catch (err) {
