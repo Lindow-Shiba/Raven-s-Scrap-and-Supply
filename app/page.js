@@ -311,7 +311,7 @@ export default function Home() {
                   fontWeight: 600
                 }}
               >
-                Download Invoice
+                Upload Invoice
               </button>
             </footer>
           </section>
