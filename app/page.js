@@ -306,86 +306,74 @@ export default function Home() {
 
 /* ───────────────────────────────────────────────────────────────
    5.  DATABASE SUB-COMPONENTS  ───────────────────────────────── */
-function DatabaseGate({ children }) {
-  const [allowed, setAllowed] = useState(false);
-  const [pw, setPw] = useState('');
-  if (allowed) return children;
-  return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 16
-      }}
-    >
-      <h2>Enter Admin Password</h2>
-      <input
-        type="password"
-        value={pw}
-        onChange={e => setPw(e.target.value)}
-        placeholder="Password…"
-        style={{ padding: 8 }}
-      />
-      <button
-        onClick={() => (pw === 'RavenAdmin' ? setAllowed(true) : alert('Incorrect'))}
-        style={{
-          padding: '6px 18px',
-          background: '#d1b07b',
-          border: 'none',
-          color: '#000'
-        }}
-      >
-        Unlock
-      </button>
-    </div>
-  );
-}
-
 function DatabasePage({ refresh }) {
-  const [rows, setRows] = useState([]);
+  /* ───── Local state ───────────────────────────── */
+  const [employees, setEmployees] = useState([]);
+  const [materials, setMaterials] = useState([]);
+
+  /*  Inputs for adding a new employee  */
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
   const [commission, setCommission] = useState('');
 
-  const load = () =>
+  /* ───── Loaders ──────────────────────────────── */
+  const loadEmployees = () =>
     supabase
       .from('employees')
       .select('*')
       .order('id', { ascending: false })
-      .then(({ data }) => setRows(data || []));
+      .then(({ data }) => setEmployees(data || []));
 
-  useEffect(load, []);
+  const loadMaterials = () =>
+    supabase
+      .from('materials')
+      .select('*')
+      .order('name')
+      .then(({ data }) => setMaterials(data || []));
 
-  const add = async () => {
+  useEffect(() => {
+    loadEmployees();
+    loadMaterials();
+  }, []);
+
+  /* ───── CRUD helpers ─────────────────────────── */
+  // Employees
+  const addEmployee = async () => {
     if (!name || !cid) return;
-    const data = {
+    await supabase.from('employees').insert({
       name,
       cid,
       commission: commission ? Number(commission) : 100
-    };
-    await supabase.from('employees').insert(data);
+    });
     setName('');
     setCid('');
     setCommission('');
-    load();
-    refresh(); // update dropdown
+    loadEmployees();
+    refresh(); // refresh dropdown
   };
 
-  const upd = async (id, field, val) => {
+  const updEmployee = async (id, field, val) => {
     await supabase.from('employees').update({ [field]: val }).eq('id', id);
-    refresh();
-  };
-  const del = async id => {
-    await supabase.from('employees').delete().eq('id', id);
-    load();
+    loadEmployees();
     refresh();
   };
 
+  const delEmployee = async id => {
+    await supabase.from('employees').delete().eq('id', id);
+    loadEmployees();
+    refresh();
+  };
+
+  // Materials
+  const updPrice = async (id, price) => {
+    await supabase.from('materials').update({ price }).eq('id', id);
+    loadMaterials();
+  };
+
+  /* ───── Render ───────────────────────────────── */
   return (
     <main style={{ padding: 16, flex: 1 }}>
+      {/* ───────── Employees ───────── */}
       <h2>Employees</h2>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input
@@ -410,7 +398,7 @@ function DatabasePage({ refresh }) {
           style={{ padding: 6, width: 120 }}
         />
         <button
-          onClick={add}
+          onClick={addEmployee}
           style={{
             padding: '6px 12px',
             background: '#d1b07b',
@@ -432,26 +420,30 @@ function DatabasePage({ refresh }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map(r => (
-            <tr key={r.id}>
+          {employees.map(emp => (
+            <tr key={emp.id}>
               <td>
                 <input
-                  value={r.name}
+                  value={emp.name}
                   onChange={e => {
                     const v = e.target.value;
-                    setRows(rows.map(x => (x.id === r.id ? { ...x, name: v } : x)));
-                    upd(r.id, 'name', v);
+                    setEmployees(
+                      employees.map(x => (x.id === emp.id ? { ...x, name: v } : x))
+                    );
+                    updEmployee(emp.id, 'name', v);
                   }}
                   style={{ padding: 4, width: 180 }}
                 />
               </td>
               <td>
                 <input
-                  value={r.cid}
+                  value={emp.cid}
                   onChange={e => {
                     const v = e.target.value;
-                    setRows(rows.map(x => (x.id === r.id ? { ...x, cid: v } : x)));
-                    upd(r.id, 'cid', v);
+                    setEmployees(
+                      employees.map(x => (x.id === emp.id ? { ...x, cid: v } : x))
+                    );
+                    updEmployee(emp.id, 'cid', v);
                   }}
                   style={{ padding: 4, width: 120 }}
                 />
@@ -461,18 +453,22 @@ function DatabasePage({ refresh }) {
                   type="number"
                   min="0"
                   max="100"
-                  value={r.commission ?? 100}
+                  value={emp.commission ?? 100}
                   onChange={e => {
                     const v = Number(e.target.value || 0);
-                    setRows(rows.map(x => (x.id === r.id ? { ...x, commission: v } : x)));
-                    upd(r.id, 'commission', v);
+                    setEmployees(
+                      employees.map(x =>
+                        x.id === emp.id ? { ...x, commission: v } : x
+                      )
+                    );
+                    updEmployee(emp.id, 'commission', v);
                   }}
                   style={{ padding: 4, width: 120 }}
                 />
               </td>
               <td>
                 <button
-                  onClick={() => del(r.id)}
+                  onClick={() => delEmployee(emp.id)}
                   style={{
                     background: 'red',
                     color: '#fff',
@@ -487,6 +483,40 @@ function DatabasePage({ refresh }) {
           ))}
         </tbody>
       </table>
+
+      {/* ───────── Materials Pricing ───────── */}
+      <h2 style={{ marginTop: 40 }}>Materials Pricing</h2>
+      <table style={{ width: '100%', fontSize: 14 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', width: 260 }}>Material</th>
+            <th style={{ textAlign: 'center', width: 120 }}>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {materials.map(mat => (
+            <tr key={mat.id}>
+              <td>{mat.name}</td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  value={mat.price ?? 0}
+                  onChange={e => {
+                    const v = Number(e.target.value || 0);
+                    setMaterials(
+                      materials.map(x => (x.id === mat.id ? { ...x, price: v } : x))
+                    );
+                    updPrice(mat.id, v);
+                  }}
+                  style={{ padding: 4, width: 120 }}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </main>
   );
 }
+
