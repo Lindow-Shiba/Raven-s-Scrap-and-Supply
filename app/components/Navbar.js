@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import ravenLogo from '../public/raven-logo.png';
 
 export default function Navbar() {
   return (
