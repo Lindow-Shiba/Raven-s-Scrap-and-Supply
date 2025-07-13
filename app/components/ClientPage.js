@@ -2,39 +2,31 @@
 
 import React, { useState, useEffect } from 'react';
 
+const priceMap = {
+  Aluminium: 15,
+  Battery: 50,
+  // add other materials and prices here...
+};
+
 export default function ClientPage() {
   const [items, setItems] = useState([
-    // Example items - replace with your real data or fetch from Supabase
     { name: 'Aluminium', qty: 0 },
-    { name: 'Rusted Metal', qty: 0 },
+    { name: 'Battery', qty: 0 },
+    // add other materials here...
   ]);
-  const [priceMap, setPriceMap] = useState({});
+
   const [invoiceId, setInvoiceId] = useState('INV-001');
 
-  useEffect(() => {
-    // Fetch prices from Supabase or set manually
-    setPriceMap({
-      Aluminium: 15.0,
-      'Rusted Metal': 10.0,
-    });
-  }, []);
+  const handleQtyChange = (index, qty) => {
+    const newItems = [...items];
+    newItems[index].qty = parseInt(qty) || 0;
+    setItems(newItems);
+  };
 
-  const submitInvoice = async () => {
-    const lines = items
-      .filter(i => i.qty > 0)
-      .map(
-        i =>
-          `${i.name} × ${i.qty} - $${(
-            (priceMap[i.name] || 0) * i.qty
-          ).toFixed(2)}`
-      );
-
-    const total = items
-      .reduce(
-        (sum, i) => sum + (priceMap[i.name] || 0) * i.qty,
-        0
-      )
-      .toFixed(2);
+  const handleSubmit = async () => {
+    const filteredItems = items.filter(i => i.qty > 0);
+    const lines = filteredItems.map(i => `${i.name} × ${i.qty} - $${(priceMap[i.name] * i.qty).toFixed(2)}`);
+    const total = filteredItems.reduce((sum, i) => sum + priceMap[i.name] * i.qty, 0).toFixed(2);
 
     try {
       const res = await fetch('/api/submitInvoice', {
@@ -42,42 +34,32 @@ export default function ClientPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inv: invoiceId, lines, total }),
       });
-
-      if (res.ok) {
-        alert('Invoice submitted!');
-      } else {
-        alert('Failed to submit invoice.');
-      }
-    } catch (error) {
-      console.error('Submit error:', error);
-      alert('Error submitting invoice.');
+      if (!res.ok) throw new Error('Failed to submit invoice');
+      alert('Invoice submitted');
+    } catch (err) {
+      alert('Invoice submitted, but Discord notification failed.');
+      console.error(err);
     }
   };
 
   return (
     <div>
-      <h1>Invoice Form</h1>
+      <h1>Submit Invoice</h1>
       {items.map((item, idx) => (
-        <div key={idx}>
-          <label>
-            {item.name} Qty:{' '}
-            <input
-              type="number"
-              value={item.qty}
-              min="0"
-              onChange={e => {
-                const newQty = parseInt(e.target.value, 10) || 0;
-                setItems(prev =>
-                  prev.map((it, i) =>
-                    i === idx ? { ...it, qty: newQty } : it
-                  )
-                );
-              }}
-            />
-          </label>
+        <div key={item.name}>
+          <label>{item.name}</label>
+          <input
+            type="number"
+            min="0"
+            value={item.qty}
+            onChange={e => handleQtyChange(idx, e.target.value)}
+          />
         </div>
       ))}
-      <button onClick={submitInvoice}>Submit Invoice</button>
+      <button onClick={handleSubmit}>Submit Invoice</button>
+      <div>
+        <h2>Total: ${items.reduce((sum, i) => sum + (priceMap[i.name] * i.qty), 0).toFixed(2)}</h2>
+      </div>
     </div>
   );
 }
