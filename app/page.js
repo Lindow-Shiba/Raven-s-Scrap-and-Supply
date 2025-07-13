@@ -121,7 +121,11 @@ export default function Home() {
               { name: 'Warehouse', value: wh || '—', inline: true },
               {
                 name: 'Date',
-                value: new Date().toLocaleString(),
+                value: new Date().toLocaleString('en-US', {
+                  timeZone: 'America/New_York',
+                  dateStyle: 'short',
+                  timeStyle: 'short'
+                }),
                 inline: false
               },
               { name: 'Items', value: summary, inline: false },
