@@ -7,9 +7,9 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-/* ───────────────────────── CONFIG ────────────────────────── */
+/* ══════════════  CONFIG  ══════════════ */
 const DISCORD_WEBHOOK =
-  'https://discord.com/api/webhooks/XXXXXXXX/XXXXXXXXXXXXXXXX'; // ← put your webhook
+  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← put your webhook URL
 
 const catalogue = {
   'Car Internals': [
@@ -30,7 +30,7 @@ const catalogue = {
   ]
 };
 
-/* ─────────────────────── Main Component ───────────────────── */
+/* ══════════════  MAIN COMPONENT  ══════════════ */
 export default function Home() {
   const [page, setPage] = useState('materials');
   const [cart, setCart] = useState({});
@@ -48,12 +48,9 @@ export default function Home() {
   const [inv, setInv] = useState(`${todayUS()}-001`);
   const [notes, setNotes] = useState('');
 
-  /* Load employees for dropdown */
+  /* Load employees dropdown */
   const loadEmployees = () =>
-    supabase
-      .from('employees')
-      .select('*')
-      .order('name')
+    supabase.from('employees').select('*').order('name')
       .then(({ data }) => setEmployees(data || []));
 
   useEffect(loadEmployees, []);
@@ -64,9 +61,9 @@ export default function Home() {
   const setQty = (id, q) =>
     setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
 
-  /* ───────────── Upload Invoice & Webhook ───────────── */
+  /* ═════════  Upload invoice to Discord  ═════════ */
   const uploadInvoice = async () => {
-    /* PNG snapshot */
+    /* snapshot PNG */
     const el = document.getElementById('left-panel');
     if (!el) return;
     const canvas = await html2canvas(el, { backgroundColor: '#fff' });
@@ -75,63 +72,56 @@ export default function Home() {
     link.download = `${inv}.png`;
     link.click();
 
-    /* Items list */
+    /* item summary */
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
     const summary =
       cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') ||
       'No items';
 
-    /* Total price */
+    /* total price */
     let totalValue = 0;
     if (cartEntries.length) {
-      const { data: prices } = await supabase
-        .from('materials')
-        .select('name, price');
+      const { data: prices } = await supabase.from('materials').select('name, price');
       for (const [name, qty] of cartEntries) {
         const row = prices.find(p => p.name === name);
         if (row) totalValue += row.price * qty;
       }
     }
 
-    /* Commission & employee pay */
+    /* employee commission */
     const emp = employees.find(e => e.name === who);
-    const commissionPct =
-      emp && emp.commission != null ? emp.commission : 100;
+    const commissionPct = emp && emp.commission != null ? emp.commission : 100;
     const employeePay = Math.round(totalValue * (commissionPct / 100));
 
-    /* Post embed */
+    /* send webhook */
     fetch(DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: 'Raven Invoices',
-        embeds: [
-          {
-            title: `Invoice ${inv}`,
-            color: 0xd1b07b,
-            fields: [
-              { name: 'Employee', value: who || '—', inline: true },
-              { name: 'Warehouse', value: wh || '—', inline: true },
-              {
-                name: 'Date',
-                value: new Date().toLocaleString('en-US', {
-                  timeZone: 'America/New_York',
-                  dateStyle: 'short',
-                  timeStyle: 'short'
-                }),
-                inline: false
-              },
-              { name: 'Items', value: summary, inline: false },
-              { name: 'Total Price', value: `$${totalValue.toLocaleString()}`, inline: false },
-              { name: 'Employee Pay', value: `$${employeePay.toLocaleString()}`, inline: false }
-            ]
-          }
-        ]
+        embeds: [{
+          title: `Invoice ${inv}`,
+          color: 0xd1b07b,
+          fields: [
+            { name: 'Employee', value: who || '—', inline: true },
+            { name: 'Warehouse', value: wh || '—', inline: true },
+            {
+              name: 'Date',
+              value: new Date().toLocaleString('en-US', {
+                timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short'
+              }),
+              inline: false
+            },
+            { name: 'Items', value: summary, inline: false },
+            { name: 'Total Price', value: `$${totalValue.toLocaleString()}`, inline: false },
+            { name: 'Employee Pay', value: `$${employeePay.toLocaleString()}`, inline: false }
+          ]
+        }]
       })
     });
   };
 
-  /* Nav button style */
+  /* Nav btn style */
   const nav = act => ({
     padding: '6px 12px',
     background: act ? '#d1b07b' : 'transparent',
@@ -140,16 +130,14 @@ export default function Home() {
     cursor: 'pointer'
   });
 
-  /* ───────────────────────── Render ───────────────────────── */
+  /* ══════════════  RENDER  ══════════════ */
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <header
-        style={{
-          display: 'flex', alignItems: 'center', gap: 12,
-          padding: '8px 16px', background: '#111', borderBottom: '1px solid #333'
-        }}
-      >
+      {/* header */}
+      <header style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '8px 16px', background: '#111', borderBottom: '1px solid #333'
+      }}>
         <Image src="/raven-logo.png" alt="logo" width={60} height={60} />
         <h1 style={{ fontSize: 28, fontWeight: 700 }}>Raven&apos;s Scrap &amp; Supply</h1>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
@@ -158,12 +146,14 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ───────── Materials Page ───────── */}
+      {/* ─────────── Materials page ─────────── */}
       {page === 'materials' && (
         <div style={{ flex: 1, display: 'flex' }}>
-          {/* Receipt panel */}
-          <section id="left-panel" style={{ flex: '1 0 320px', borderRight: '1px solid #d1b07b',
-            padding: 16, display: 'flex', flexDirection: 'column' }}>
+          {/* receipt panel */}
+          <section id="left-panel" style={{
+            flex: '1 0 320px', borderRight: '1px solid #d1b07b',
+            padding: 16, display: 'flex', flexDirection: 'column'
+          }}>
             <h2>Receipt</h2>
             <table style={{ width: '100%', fontSize: 14 }}>
               <thead><tr>
@@ -174,7 +164,7 @@ export default function Home() {
                 {Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => (
                   <tr key={id}>
                     <td>{id}</td>
-                    <td>
+                    <td style={{ width: 60 }}>
                       <input type="number" min="0" value={q} style={{ width: 60 }}
                         onChange={e => setQty(id, parseInt(e.target.value || 0))} />
                     </td>
@@ -196,12 +186,13 @@ export default function Home() {
               <input value={inv} onChange={e => setInv(e.target.value)} style={{ padding: 8 }} />
               <input placeholder="Notes" value={notes} onChange={e => setNotes(e.target.value)} style={{ padding: 8 }} />
               <button onClick={uploadInvoice} style={{
-                padding: 10, background: '#d1b07b', color: '#000', border: 'none', fontWeight: 600
+                padding: 10, background: '#d1b07b', color: '#000',
+                border: 'none', fontWeight: 600
               }}>Upload Invoice</button>
             </footer>
           </section>
 
-          {/* Catalogue */}
+          {/* catalogue */}
           <section style={{ flex: 2, padding: 16 }}>
             {Object.entries(catalogue).map(([cat, items]) => (
               <div key={cat} style={{ marginBottom: 24 }}>
@@ -220,7 +211,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ───────── Database Page ───────── */}
+      {/* ─────────── Database tab ─────────── */}
       {page === 'database' && (
         <DatabaseGate>
           <DatabasePage refresh={loadEmployees} />
@@ -230,9 +221,9 @@ export default function Home() {
   );
 }
 
-/* ──────────────────── Database Sub-components ───────────────── */
+/* ══════════════  DATABASE SUB-COMPONENTS  ══════════════ */
 
-/* Password gate */
+/* simple password gate */
 function DatabaseGate({ children }) {
   const [allowed, setAllowed] = useState(false);
   const [pw, setPw] = useState('');
@@ -253,18 +244,17 @@ function DatabaseGate({ children }) {
   );
 }
 
-/* Employees + Materials management */
+/* employees + materials tables */
 function DatabasePage({ refresh }) {
-  /* State */
   const [employees, setEmployees] = useState([]);
   const [materials, setMaterials] = useState([]);
 
-  /* New employee inputs */
+  /* add-employee inputs */
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
   const [commission, setCommission] = useState('');
 
-  /* Loaders */
+  /* loaders */
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('id', { ascending: false })
       .then(({ data }) => setEmployees(data || []));
@@ -298,7 +288,7 @@ function DatabasePage({ refresh }) {
     loadMaterials();
   };
 
-  /* Render */
+  /* render */
   return (
     <main style={{ padding: 16, flex: 1 }}>
       {/* Employees */}
@@ -309,7 +299,8 @@ function DatabasePage({ refresh }) {
         <input placeholder="CID" value={cid} onChange={e => setCid(e.target.value)}
           style={{ padding: 6, width: 120 }} />
         <input type="number" placeholder="Commission %" value={commission} min="0" max="100"
-          onChange={e => setCommission(e.target.value)} style={{ padding: 6, width: 120 }} />
+          onChange={e => setCommission(e.target.value)}
+          style={{ padding: 6, width: 120 }} />
         <button onClick={addEmployee} style={{
           padding: '6px 12px', background: '#d1b07b', border: 'none', color: '#000'
         }}>Add</button>
@@ -317,32 +308,39 @@ function DatabasePage({ refresh }) {
 
       <table style={{ width: '100%', fontSize: 14 }}>
         <thead><tr>
-          <th style={{ textAlign: 'left', width: 180 }}>Name</th>
+          <th style={{ textAlign: 'left',   width: 180 }}>Name</th>
           <th style={{ textAlign: 'center', width: 120 }}>CID</th>
           <th style={{ textAlign: 'center', width: 120 }}>Comm&nbsp;%</th>
-          <th style={{ width: 30 }}></th></tr></thead>
+          <th style={{ width: 30 }}></th>
+        </tr></thead>
         <tbody>
           {employees.map(emp => (
             <tr key={emp.id}>
-              <td>
+              <td style={{ width: 180 }}>
                 <input value={emp.name}
-                  onChange={e => { const v = e.target.value;
+                  onChange={e => {
+                    const v = e.target.value;
                     setEmployees(employees.map(x => x.id === emp.id ? { ...x, name: v } : x));
-                    updEmployee(emp.id, 'name', v); }}
+                    updEmployee(emp.id, 'name', v);
+                  }}
                   style={{ padding: 4, width: 180 }} />
               </td>
-              <td>
+              <td style={{ width: 120 }}>
                 <input value={emp.cid}
-                  onChange={e => { const v = e.target.value;
+                  onChange={e => {
+                    const v = e.target.value;
                     setEmployees(employees.map(x => x.id === emp.id ? { ...x, cid: v } : x));
-                    updEmployee(emp.id, 'cid', v); }}
+                    updEmployee(emp.id, 'cid', v);
+                  }}
                   style={{ padding: 4, width: 120 }} />
               </td>
-              <td>
+              <td style={{ width: 120 }}>
                 <input type="number" min="0" max="100" value={emp.commission ?? 100}
-                  onChange={e => { const v = Number(e.target.value || 0);
+                  onChange={e => {
+                    const v = Number(e.target.value || 0);
                     setEmployees(employees.map(x => x.id === emp.id ? { ...x, commission: v } : x));
-                    updEmployee(emp.id, 'commission', v); }}
+                    updEmployee(emp.id, 'commission', v);
+                  }}
                   style={{ padding: 4, width: 120 }} />
               </td>
               <td>
@@ -359,17 +357,20 @@ function DatabasePage({ refresh }) {
       <h2 style={{ marginTop: 40 }}>Materials Pricing</h2>
       <table style={{ width: '100%', fontSize: 14 }}>
         <thead><tr>
-          <th style={{ textAlign: 'left', width: 260 }}>Material</th>
-          <th style={{ textAlign: 'center', width: 120 }}>Price</th></tr></thead>
+          <th style={{ textAlign: 'left',   width: 260 }}>Material</th>
+          <th style={{ textAlign: 'center', width: 120 }}>Price</th>
+        </tr></thead>
         <tbody>
           {materials.map(mat => (
             <tr key={mat.id}>
-              <td>{mat.name}</td>
-              <td>
+              <td style={{ width: 260 }}>{mat.name}</td>
+              <td style={{ width: 120 }}>
                 <input type="number" min="0" value={mat.price ?? 0}
-                  onChange={e => { const v = Number(e.target.value || 0);
+                  onChange={e => {
+                    const v = Number(e.target.value || 0);
                     setMaterials(materials.map(x => x.id === mat.id ? { ...x, price: v } : x));
-                    updPrice(mat.id, v); }}
+                    updPrice(mat.id, v);
+                  }}
                   style={{ padding: 4, width: 120 }} />
               </td>
             </tr>
