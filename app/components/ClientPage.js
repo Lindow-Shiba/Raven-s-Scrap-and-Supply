@@ -1,20 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const priceMap = {
   Aluminium: 15,
   Battery: 50,
-  // add other materials and prices here...
+  // add other materials here...
 };
 
 export default function ClientPage() {
   const [items, setItems] = useState([
     { name: 'Aluminium', qty: 0 },
     { name: 'Battery', qty: 0 },
-    // add other materials here...
   ]);
-
   const [invoiceId, setInvoiceId] = useState('INV-001');
 
   const handleQtyChange = (index, qty) => {
@@ -43,22 +41,32 @@ export default function ClientPage() {
   };
 
   return (
-    <div>
-      <h1>Submit Invoice</h1>
-      {items.map((item, idx) => (
-        <div key={item.name}>
-          <label>{item.name}</label>
-          <input
-            type="number"
-            min="0"
-            value={item.qty}
-            onChange={e => handleQtyChange(idx, e.target.value)}
-          />
-        </div>
-      ))}
-      <button onClick={handleSubmit}>Submit Invoice</button>
-      <div>
-        <h2>Total: ${items.reduce((sum, i) => sum + (priceMap[i.name] * i.qty), 0).toFixed(2)}</h2>
+    <div className="container">
+      <div className="left-panel">
+        <h2>Materials</h2>
+        {items.map((item, idx) => (
+          <div key={item.name} style={{ marginBottom: '15px' }}>
+            <label style={{ marginRight: '10px' }}>{item.name}</label>
+            <input
+              type="number"
+              min="0"
+              value={item.qty}
+              onChange={e => handleQtyChange(idx, e.target.value)}
+              style={{ width: '60px' }}
+            />
+          </div>
+        ))}
+        <button onClick={handleSubmit}>Submit Invoice</button>
+      </div>
+      <div className="right-panel">
+        <h2>Invoice Preview</h2>
+        <p><b>Invoice ID:</b> {invoiceId}</p>
+        <ul>
+          {items.filter(i => i.qty > 0).map(i => (
+            <li key={i.name}>{i.name} × {i.qty} - ${(priceMap[i.name] * i.qty).toFixed(2)}</li>
+          ))}
+        </ul>
+        <p><b>Total: </b>${items.reduce((sum, i) => sum + priceMap[i.name] * i.qty, 0).toFixed(2)}</p>
       </div>
     </div>
   );
