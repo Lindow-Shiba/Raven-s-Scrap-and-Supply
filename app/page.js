@@ -7,9 +7,9 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-/* ══════════════  CONFIG  ══════════════ */
+/* ══════════════ CONFIG ══════════════ */
 const DISCORD_WEBHOOK =
-  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← put your webhook URL
+  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← replace
 
 const catalogue = {
   'Car Internals': [
@@ -30,7 +30,7 @@ const catalogue = {
   ]
 };
 
-/* ══════════════  MAIN COMPONENT  ══════════════ */
+/* ═════════ MAIN COMPONENT ═════════ */
 export default function Home() {
   const [page, setPage] = useState('materials');
   const [cart, setCart] = useState({});
@@ -41,29 +41,25 @@ export default function Home() {
 
   const todayUS = () => {
     const d = new Date();
-    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(
-      d.getDate()
-    ).padStart(2, '0')}-${d.getFullYear()}`;
+    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
   };
   const [inv, setInv] = useState(`${todayUS()}-001`);
   const [notes, setNotes] = useState('');
 
-  /* Load employees dropdown */
+  /* fetch employees */
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('name')
       .then(({ data }) => setEmployees(data || []));
 
   useEffect(loadEmployees, []);
 
-  /* Cart helpers */
+  /* cart helpers */
   const add = id => setCart(c => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const del = id => setCart(({ [id]: _, ...r }) => r);
-  const setQty = (id, q) =>
-    setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
+  const del = id => setCart(({ [id]: _, ...rest }) => rest);
+  const setQty = (id, q) => setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
 
-  /* ═════════  Upload invoice to Discord  ═════════ */
+  /* upload invoice */
   const uploadInvoice = async () => {
-    /* snapshot PNG */
     const el = document.getElementById('left-panel');
     if (!el) return;
     const canvas = await html2canvas(el, { backgroundColor: '#fff' });
@@ -72,13 +68,10 @@ export default function Home() {
     link.download = `${inv}.png`;
     link.click();
 
-    /* item summary */
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
     const summary =
-      cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') ||
-      'No items';
+      cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
-    /* total price */
     let totalValue = 0;
     if (cartEntries.length) {
       const { data: prices } = await supabase.from('materials').select('name, price');
@@ -88,12 +81,10 @@ export default function Home() {
       }
     }
 
-    /* employee commission */
     const emp = employees.find(e => e.name === who);
     const commissionPct = emp && emp.commission != null ? emp.commission : 100;
     const employeePay = Math.round(totalValue * (commissionPct / 100));
 
-    /* send webhook */
     fetch(DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -121,19 +112,17 @@ export default function Home() {
     });
   };
 
-  /* Nav btn style */
-  const nav = act => ({
+  const nav = active => ({
     padding: '6px 12px',
-    background: act ? '#d1b07b' : 'transparent',
-    color: act ? '#000' : '#d1b07b',
+    background: active ? '#d1b07b' : 'transparent',
+    color: active ? '#000' : '#d1b07b',
     border: '1px solid #d1b07b',
     cursor: 'pointer'
   });
 
-  /* ══════════════  RENDER  ══════════════ */
+  /* ───────── render ───────── */
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* header */}
       <header style={{
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '8px 16px', background: '#111', borderBottom: '1px solid #333'
@@ -146,10 +135,9 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ─────────── Materials page ─────────── */}
+      {/* materials page */}
       {page === 'materials' && (
         <div style={{ flex: 1, display: 'flex' }}>
-          {/* receipt panel */}
           <section id="left-panel" style={{
             flex: '1 0 320px', borderRight: '1px solid #d1b07b',
             padding: 16, display: 'flex', flexDirection: 'column'
@@ -159,7 +147,8 @@ export default function Home() {
               <thead><tr>
                 <th style={{ textAlign: 'left' }}>Item</th>
                 <th style={{ textAlign: 'center', width: 60 }}>Qty</th>
-                <th style={{ width: 30 }}></th></tr></thead>
+                <th style={{ width: 30 }}></th>
+              </tr></thead>
               <tbody>
                 {Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => (
                   <tr key={id}>
@@ -192,7 +181,6 @@ export default function Home() {
             </footer>
           </section>
 
-          {/* catalogue */}
           <section style={{ flex: 2, padding: 16 }}>
             {Object.entries(catalogue).map(([cat, items]) => (
               <div key={cat} style={{ marginBottom: 24 }}>
@@ -211,7 +199,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ─────────── Database tab ─────────── */}
+      {/* database page */}
       {page === 'database' && (
         <DatabaseGate>
           <DatabasePage refresh={loadEmployees} />
@@ -221,9 +209,7 @@ export default function Home() {
   );
 }
 
-/* ══════════════  DATABASE SUB-COMPONENTS  ══════════════ */
-
-/* simple password gate */
+/* ════════ Database Gate ════════ */
 function DatabaseGate({ children }) {
   const [allowed, setAllowed] = useState(false);
   const [pw, setPw] = useState('');
@@ -244,17 +230,15 @@ function DatabaseGate({ children }) {
   );
 }
 
-/* employees + materials tables */
+/* ════════ Database Page ════════ */
 function DatabasePage({ refresh }) {
   const [employees, setEmployees] = useState([]);
   const [materials, setMaterials] = useState([]);
 
-  /* add-employee inputs */
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
   const [commission, setCommission] = useState('');
 
-  /* loaders */
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('id', { ascending: false })
       .then(({ data }) => setEmployees(data || []));
@@ -265,7 +249,6 @@ function DatabasePage({ refresh }) {
 
   useEffect(() => { loadEmployees(); loadMaterials(); }, []);
 
-  /* CRUD helpers */
   const addEmployee = async () => {
     if (!name || !cid) return;
     await supabase.from('employees').insert({
@@ -274,6 +257,7 @@ function DatabasePage({ refresh }) {
     setName(''); setCid(''); setCommission('');
     loadEmployees(); refresh();
   };
+
   const updEmployee = async (id, field, val) => {
     await supabase.from('employees').update({ [field]: val }).eq('id', id);
     loadEmployees(); refresh();
@@ -288,18 +272,17 @@ function DatabasePage({ refresh }) {
     loadMaterials();
   };
 
-  /* render */
   return (
     <main style={{ padding: 16, flex: 1 }}>
-      {/* Employees */}
+      {/* employees */}
       <h2>Employees</h2>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <input placeholder="Name" value={name} onChange={e => setName(e.target.value)}
           style={{ padding: 6, width: 180 }} />
         <input placeholder="CID" value={cid} onChange={e => setCid(e.target.value)}
           style={{ padding: 6, width: 120 }} />
-        <input type="number" placeholder="Commission %" value={commission} min="0" max="100"
-          onChange={e => setCommission(e.target.value)}
+        <input type="number" placeholder="Commission %" min="0" max="100"
+          value={commission} onChange={e => setCommission(e.target.value)}
           style={{ padding: 6, width: 120 }} />
         <button onClick={addEmployee} style={{
           padding: '6px 12px', background: '#d1b07b', border: 'none', color: '#000'
@@ -307,12 +290,14 @@ function DatabasePage({ refresh }) {
       </div>
 
       <table style={{ width: '100%', fontSize: 14 }}>
-        <thead><tr>
-          <th style={{ textAlign: 'left',   width: 180 }}>Name</th>
-          <th style={{ textAlign: 'center', width: 120 }}>CID</th>
-          <th style={{ textAlign: 'center', width: 120 }}>Comm&nbsp;%</th>
-          <th style={{ width: 30 }}></th>
-        </tr></thead>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left',   width: 180 }}>Name</th>
+            <th style={{ textAlign: 'center', width: 120 }}>CID</th>
+            <th style={{ textAlign: 'center', width: 120 }}>Comm&nbsp;%</th>
+            <th style={{ width: 30 }}></th>{/* blank header for delete */}
+          </tr>
+        </thead>
         <tbody>
           {employees.map(emp => (
             <tr key={emp.id}>
@@ -343,7 +328,7 @@ function DatabasePage({ refresh }) {
                   }}
                   style={{ padding: 4, width: 120 }} />
               </td>
-              <td>
+              <td style={{ width: 30 }}>
                 <button onClick={() => delEmployee(emp.id)} style={{
                   background: 'red', color: '#fff', border: 'none', padding: '4px 8px'
                 }}>Delete</button>
@@ -353,13 +338,15 @@ function DatabasePage({ refresh }) {
         </tbody>
       </table>
 
-      {/* Materials pricing */}
+      {/* materials */}
       <h2 style={{ marginTop: 40 }}>Materials Pricing</h2>
       <table style={{ width: '100%', fontSize: 14 }}>
-        <thead><tr>
-          <th style={{ textAlign: 'left',   width: 260 }}>Material</th>
-          <th style={{ textAlign: 'center', width: 120 }}>Price</th>
-        </tr></thead>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left',   width: 260 }}>Material</th>
+            <th style={{ textAlign: 'center', width: 120 }}>Price</th>
+          </tr>
+        </thead>
         <tbody>
           {materials.map(mat => (
             <tr key={mat.id}>
