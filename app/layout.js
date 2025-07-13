@@ -1,5 +1,5 @@
-import './globals.css'; // your global CSS
-import Navbar from './components/Navbar'; // your navbar component
+import './globals.css';
+import Navbar from './components/Navbar';
 
 export const metadata = {
   title: 'Raven Scrap and Supply',
