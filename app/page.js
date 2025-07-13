@@ -10,65 +10,24 @@ import { supabase } from '../lib/supabaseClient';
 /* ───────────────────────────────────────────────────────────────
    1.  CONFIG  ─────────────────────────────────────────────────── */
 const DISCORD_WEBHOOK =
-  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← replace with your real URL if different
+  'https://discord.com/api/webhooks/XXXXXXXX/XXXXXXXXXXXXXXXX'; // ← paste your real URL
 
 const catalogue = {
   'Car Internals': [
-    'Axle Parts',
-    'Body Repair Tools',
-    'Brake Pads',
-    'Clutch Kits',
-    'Fuel Straps',
-    'Radiator Part',
-    'Suspension Parts',
-    'Tire Repair Kit',
-    'Transmission Parts',
-    'Wires'
+    'Axle Parts', 'Body Repair Tools', 'Brake Pads', 'Clutch Kits', 'Fuel Straps',
+    'Radiator Part', 'Suspension Parts', 'Tire Repair Kit', 'Transmission Parts', 'Wires'
   ],
   Materials: [
-    'Aluminium',
-    'Battery',
-    'Carbon',
-    'Clutch Fluid',
-    'Coil Spring',
-    'Copper',
-    'Copper Wires',
-    'Electronics',
-    'Graphite',
-    'Iron',
-    'Laminated Plastic',
-    'Lead',
-    'Multi-Purpose Grease',
-    'Paint Thinner',
-    'Plastic',
-    'Polymer',
-    'Polyethylene',
-    'Rubber',
-    'Rusted Metal',
-    'Scrap Metal',
-    'Silicone',
-    'Stainless Steel',
-    'Steel',
-    'Timing Belt',
-    'Gun Powder',
-    'Iron Ore'
+    'Aluminium', 'Battery', 'Carbon', 'Clutch Fluid', 'Coil Spring', 'Copper',
+    'Copper Wires', 'Electronics', 'Graphite', 'Iron', 'Laminated Plastic', 'Lead',
+    'Multi-Purpose Grease', 'Paint Thinner', 'Plastic', 'Polymer', 'Polyethylene',
+    'Rubber', 'Rusted Metal', 'Scrap Metal', 'Silicone', 'Stainless Steel', 'Steel',
+    'Timing Belt', 'Gun Powder', 'Iron Ore'
   ],
   'Extra Items': [
-    'Apple Phone',
-    'Adv Lockpick',
-    'Bottle Cap',
-    'Deformed Nail',
-    'Empty Bottle Glass',
-    'Horse Shoe',
-    'Leather',
-    'Lockpick',
-    'Old Coin',
-    'Pork & Beans',
-    'Repair Kit',
-    'Rusted Lighter',
-    'Rusted Tin Can',
-    'Rusted Watch',
-    'Samsung Phone'
+    'Apple Phone', 'Adv Lockpick', 'Bottle Cap', 'Deformed Nail', 'Empty Bottle Glass',
+    'Horse Shoe', 'Leather', 'Lockpick', 'Old Coin', 'Pork & Beans', 'Repair Kit',
+    'Rusted Lighter', 'Rusted Tin Can', 'Rusted Watch', 'Samsung Phone'
   ]
 };
 
@@ -77,7 +36,7 @@ const catalogue = {
 export default function Home() {
   const [page, setPage] = useState('materials');
   const [cart, setCart] = useState({});
-  const [names, setNames] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
   const [who, setWho] = useState('');
   const [wh, setWh] = useState('');
@@ -91,14 +50,15 @@ export default function Home() {
   const [inv, setInv] = useState(`${todayUS()}-001`);
   const [notes, setNotes] = useState('');
 
-  /* Fetch employee names once */
-  useEffect(() => {
+  /* Fetch employees once */
+  const loadEmployees = () =>
     supabase
       .from('employees')
-      .select('name')
+      .select('*')
       .order('name')
-      .then(({ data }) => setNames(data?.map(r => r.name) || []));
-  }, []);
+      .then(({ data }) => setEmployees(data || []));
+
+  useEffect(loadEmployees, []);
 
   /* Helpers to mutate cart */
   const add = id => setCart(c => ({ ...c, [id]: (c[id] || 0) + 1 }));
@@ -107,8 +67,8 @@ export default function Home() {
     setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
 
   /* ───────────────────────────────────────────────────────────
-     3.  DOWNLOAD & WEBHOOK  ─────────────────────────────────── */
-  const download = async () => {
+     3.  UPLOAD & WEBHOOK  ───────────────────────────────────── */
+  const uploadInvoice = async () => {
     /* 3-a.  Capture the receipt PNG */
     const el = document.getElementById('left-panel');
     if (!el) return;
@@ -121,28 +81,32 @@ export default function Home() {
     /* 3-b.  Build item summary */
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
     const summary =
-      cartEntries
-        .map(([item, q]) => `• **${item}** × ${q}`)
-        .join('\n') || 'No items';
+      cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') ||
+      'No items';
 
     /* 3-c.  Fetch live prices & total */
     let totalValue = 0;
     if (cartEntries.length) {
-      const { data: prices, error } = await supabase
+      const { data: prices } = await supabase
         .from('materials')
         .select('name, price');
-
-      if (!error) {
-        for (const [name, qty] of cartEntries) {
-          const row = prices.find(p => p.name === name);
-          if (row) totalValue += row.price * qty;
-        }
-      } else {
-        console.error('Price lookup failed', error);
+      for (const [name, qty] of cartEntries) {
+        const row = prices.find(p => p.name === name);
+        if (row) totalValue += row.price * qty;
       }
     }
 
-    /* 3-d.  Post to Discord */
+    /* 3-d.  Get commission for selected employee */
+    const emp = employees.find(e => e.name === who);
+    const commissionPct =
+      emp && emp.commission !== null && emp.commission !== undefined
+        ? emp.commission
+        : 100;
+    const employeePay = Math.round(
+      totalValue * (Number(commissionPct) / 100)
+    );
+
+    /* 3-e.  Post to Discord */
     fetch(DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -165,6 +129,11 @@ export default function Home() {
                 name: 'Total Price',
                 value: `$${totalValue.toLocaleString()}`,
                 inline: false
+              },
+              {
+                name: 'Employee Pay',
+                value: `$${employeePay.toLocaleString()}`,
+                inline: false
               }
             ]
           }
@@ -184,9 +153,7 @@ export default function Home() {
   });
 
   return (
-    <div
-      style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
-    >
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
       <header
         style={{
@@ -203,16 +170,10 @@ export default function Home() {
           Raven&apos;s Scrap &amp; Supply
         </h1>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button
-            style={nav(page === 'materials')}
-            onClick={() => setPage('materials')}
-          >
+          <button style={nav(page === 'materials')} onClick={() => setPage('materials')}>
             Materials
           </button>
-          <button
-            style={nav(page === 'database')}
-            onClick={() => setPage('database')}
-          >
+          <button style={nav(page === 'database')} onClick={() => setPage('database')}>
             Database
           </button>
         </div>
@@ -253,9 +214,7 @@ export default function Home() {
                           min="0"
                           value={q}
                           style={{ width: 60 }}
-                          onChange={e =>
-                            setQty(id, parseInt(e.target.value || 0))
-                          }
+                          onChange={e => setQty(id, parseInt(e.target.value || 0))}
                         />
                       </td>
                       <td>
@@ -268,33 +227,19 @@ export default function Home() {
               </tbody>
             </table>
             <div style={{ flex: 1 }} />
-            <footer
-              style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
-              <select
-                value={who}
-                onChange={e => setWho(e.target.value)}
-                style={{ padding: 8 }}
-              >
+            <footer style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <select value={who} onChange={e => setWho(e.target.value)} style={{ padding: 8 }}>
                 <option value="">Select your Name</option>
-                {names.map(n => (
-                  <option key={n}>{n}</option>
+                {employees.map(e => (
+                  <option key={e.id}>{e.name}</option>
                 ))}
               </select>
-              <select
-                value={wh}
-                onChange={e => setWh(e.target.value)}
-                style={{ padding: 8 }}
-              >
+              <select value={wh} onChange={e => setWh(e.target.value)} style={{ padding: 8 }}>
                 <option value="">Select Warehouse</option>
                 <option>Benny&apos;s</option>
                 <option>CNC</option>
               </select>
-              <input
-                value={inv}
-                onChange={e => setInv(e.target.value)}
-                style={{ padding: 8 }}
-              />
+              <input value={inv} onChange={e => setInv(e.target.value)} style={{ padding: 8 }} />
               <input
                 placeholder="Notes"
                 value={notes}
@@ -302,7 +247,7 @@ export default function Home() {
                 style={{ padding: 8 }}
               />
               <button
-                onClick={download}
+                onClick={uploadInvoice}
                 style={{
                   padding: 10,
                   background: '#d1b07b',
@@ -348,7 +293,7 @@ export default function Home() {
       {/* Database Admin Page */}
       {page === 'database' && (
         <DatabaseGate>
-          <DatabasePage />
+          <DatabasePage refresh={loadEmployees} />
         </DatabaseGate>
       )}
     </div>
@@ -381,9 +326,7 @@ function DatabaseGate({ children }) {
         style={{ padding: 8 }}
       />
       <button
-        onClick={() =>
-          pw === 'RavenAdmin' ? setAllowed(true) : alert('Incorrect')
-        }
+        onClick={() => (pw === 'RavenAdmin' ? setAllowed(true) : alert('Incorrect'))}
         style={{
           padding: '6px 18px',
           background: '#d1b07b',
@@ -397,10 +340,11 @@ function DatabaseGate({ children }) {
   );
 }
 
-function DatabasePage() {
+function DatabasePage({ refresh }) {
   const [rows, setRows] = useState([]);
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
+  const [commission, setCommission] = useState('');
 
   const load = () =>
     supabase
@@ -413,17 +357,27 @@ function DatabasePage() {
 
   const add = async () => {
     if (!name || !cid) return;
-    await supabase.from('employees').insert({ name, cid });
+    const data = {
+      name,
+      cid,
+      commission: commission ? Number(commission) : 100
+    };
+    await supabase.from('employees').insert(data);
     setName('');
     setCid('');
+    setCommission('');
     load();
+    refresh(); // update dropdown
   };
+
   const upd = async (id, field, val) => {
     await supabase.from('employees').update({ [field]: val }).eq('id', id);
+    refresh();
   };
   const del = async id => {
     await supabase.from('employees').delete().eq('id', id);
     load();
+    refresh();
   };
 
   return (
@@ -434,12 +388,21 @@ function DatabasePage() {
           placeholder="Name"
           value={name}
           onChange={e => setName(e.target.value)}
-          style={{ padding: 6, width: 240 }}
+          style={{ padding: 6, width: 180 }}
         />
         <input
           placeholder="CID"
           value={cid}
           onChange={e => setCid(e.target.value)}
+          style={{ padding: 6, width: 120 }}
+        />
+        <input
+          type="number"
+          placeholder="Commission %"
+          value={commission}
+          min="0"
+          max="100"
+          onChange={e => setCommission(e.target.value)}
           style={{ padding: 6, width: 120 }}
         />
         <button
@@ -458,27 +421,24 @@ function DatabasePage() {
       <table style={{ width: '100%', fontSize: 14 }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left' }}>ID</th>
-            <th style={{ textAlign: 'center', width: 220 }}>Name</th>
-            <th style={{ textAlign: 'center', width: 100 }}>CID</th>
+            <th style={{ textAlign: 'left', width: 180 }}>Name</th>
+            <th style={{ textAlign: 'center', width: 120 }}>CID</th>
+            <th style={{ textAlign: 'center', width: 120 }}>Comm&nbsp;%</th>
             <th style={{ width: 30 }}></th>
           </tr>
         </thead>
         <tbody>
           {rows.map(r => (
             <tr key={r.id}>
-              <td>{r.id}</td>
               <td>
                 <input
                   value={r.name}
                   onChange={e => {
                     const v = e.target.value;
-                    setRows(
-                      rows.map(x => (x.id === r.id ? { ...x, name: v } : x))
-                    );
+                    setRows(rows.map(x => (x.id === r.id ? { ...x, name: v } : x)));
                     upd(r.id, 'name', v);
                   }}
-                  style={{ padding: 4, width: 220 }}
+                  style={{ padding: 4, width: 180 }}
                 />
               </td>
               <td>
@@ -486,12 +446,24 @@ function DatabasePage() {
                   value={r.cid}
                   onChange={e => {
                     const v = e.target.value;
-                    setRows(
-                      rows.map(x => (x.id === r.id ? { ...x, cid: v } : x))
-                    );
+                    setRows(rows.map(x => (x.id === r.id ? { ...x, cid: v } : x)));
                     upd(r.id, 'cid', v);
                   }}
-                  style={{ padding: 4, width: 100 }}
+                  style={{ padding: 4, width: 120 }}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={r.commission ?? 100}
+                  onChange={e => {
+                    const v = Number(e.target.value || 0);
+                    setRows(rows.map(x => (x.id === r.id ? { ...x, commission: v } : x)));
+                    upd(r.id, 'commission', v);
+                  }}
+                  style={{ padding: 4, width: 120 }}
                 />
               </td>
               <td>
