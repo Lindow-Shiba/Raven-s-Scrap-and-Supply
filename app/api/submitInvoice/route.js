@@ -8,10 +8,10 @@ export async function POST(request) {
       embeds: [
         {
           title: `Invoice ${inv}`,
-          color: 0x00b0f4,
+          color: 0xD4AF37,
           fields: [
-            { name: 'Items', value: lines.join('\n') || '-' },
-            { name: 'Total', value: `$${total}`, inline: false },
+            { name: 'Items', value: lines.join('\n') || '-', inline: false },
+            { name: 'Total', value: `$${total}`, inline: true },
           ],
           timestamp: new Date().toISOString(),
         },
