@@ -2,8 +2,8 @@ import './globals.css';
 import Navbar from './components/Navbar';
 
 export const metadata = {
-  title: 'Raven Scrap and Supply',
-  description: 'Invoice and Supply Management',
+  title: 'Raven Supply',
+  description: 'Scrap and Supply',
 };
 
 export default function RootLayout({ children }) {
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <Navbar />
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   );
