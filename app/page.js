@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabaseClient';
 /* ───────────────────────────────────────────────────────────────
    1.  CONFIG  ─────────────────────────────────────────────────── */
 const DISCORD_WEBHOOK =
-  'https://discord.com/api/webhooks/XXXXXXXX/XXXXXXXXXXXXXXXX'; // ← paste your real URL
+  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← paste your real URL
 
 const catalogue = {
   'Car Internals': [
