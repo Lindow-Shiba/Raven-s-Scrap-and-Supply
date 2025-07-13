@@ -1,18 +1,12 @@
-import './globals.css';
-import Navbar from './components/Navbar';
+'use client';
 
-export const metadata = {
-  title: 'Raven Supply',
-  description: 'Scrap and Supply',
-};
-
-export default function RootLayout({ children }) {
+export default function Layout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <Navbar />
+    <div style={{ backgroundColor: '#000', color: '#D4AF37', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Navbar will be included in _app.js or page.js */}
+      <main style={{ display: 'flex', flexGrow: 1, padding: '20px' }}>
         {children}
-      </body>
-    </html>
+      </main>
+    </div>
   );
 }
