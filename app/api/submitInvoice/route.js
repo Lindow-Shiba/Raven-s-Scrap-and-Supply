@@ -1,14 +1,8 @@
-
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
     const { inv, lines, total } = await request.json();
-
-    if (!inv || !lines || !total) {
-      console.error('Missing required fields:', { inv, lines, total });
-      return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
-    }
 
     const payload = {
       embeds: [
@@ -17,17 +11,17 @@ export async function POST(request) {
           color: 0x00b0f4,
           fields: [
             { name: 'Items', value: lines.join('\n') || '-' },
-            { name: 'Total', value: `$${total}`, inline: true }
+            { name: 'Total', value: `$${total}`, inline: false },
           ],
-          timestamp: new Date().toISOString()
-        }
-      ]
+          timestamp: new Date().toISOString(),
+        },
+      ],
     };
 
     const discordRes = await fetch(process.env.DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!discordRes.ok) {
@@ -37,7 +31,7 @@ export async function POST(request) {
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error('API error in submitInvoice:', err);
+    console.error('API error', err);
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }
