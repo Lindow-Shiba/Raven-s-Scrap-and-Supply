@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabaseClient';
 
 /* ───────────────────────────────────────────────────────────────
    1.  CONFIG  ─────────────────────────────────────────────────── */
-const DISCORD_WEBHOOK = 'YOUR_DISCORD_WEBHOOK_URL_HERE'; // ← put your webhook URL here
+const DISCORD_WEBHOOK = https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz ; // ← put your webhook URL here
 
 const catalogue = {
   'Car Internals': [
@@ -109,4 +109,4 @@ export default function Home() {
             { name: 'Warehouse', value: wh  || '—', inline: true },
             { name: 'Date',      value: new Date().toLocaleString(), inline: false },
             { name: 'Items',     value: summary, inline: false },
-            { name: 'Total Price', value: `$${totalValue.toLocaleString(
+            { name: 'Total Price', value: `$${totalValue.toLocaleString()}`, inline: false }
