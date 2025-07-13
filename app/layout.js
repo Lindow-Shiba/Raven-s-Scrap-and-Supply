@@ -1,1 +1,18 @@
-import './globals.css';export const metadata={title:"Raven's Scrap & Supply"};export default function RootLayout({children}){return <html lang='en'><body>{children}</body></html>;}
+import './globals.css'; // your global CSS
+import Navbar from './components/Navbar'; // your navbar component
+
+export const metadata = {
+  title: 'Raven Scrap and Supply',
+  description: 'Invoice and Supply Management',
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <Navbar />
+        <main>{children}</main>
+      </body>
+    </html>
+  );
+}
