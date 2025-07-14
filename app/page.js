@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabaseClient';
 
 /* ══════════════ CONFIG ══════════════ */
 const DISCORD_WEBHOOK =
-  'https://discord.com/api/webhooks/1393643305920761867/hNw7zyHODGvlgtXk8NwmgxolCSG4wHKQPjzrkWw0MOEZtzzS6w0Ib1uW0SS69M0MHLLz'; // ← replace
+  'https://discord.com/api/webhooks/1394330571257417770/2xNNVkVVs-5yivGIxFnVhaI6j9VKwhzjZ0Z8nn_TJ_q5VFJUHgQldmI30CJtdJt7bk_0'; // ← replace
 
 const catalogue = {
   'Car Internals': [
