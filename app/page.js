@@ -63,7 +63,6 @@ export default function Home() {
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
     const summary =
       cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
-    const summary =
       cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
     let totalValue = 0;
