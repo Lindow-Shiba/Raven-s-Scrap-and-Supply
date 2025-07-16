@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import html2canvas from 'html2canvas';
 import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
@@ -61,13 +60,9 @@ export default function Home() {
   const uploadInvoice = async () => {
     const el = document.getElementById('left-panel');
     if (!el) return;
-    const canvas = await html2canvas(el, { backgroundColor: '#fff' });
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `${inv}.png`;
-    link.click();
-
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
+    const summary =
+      cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
     const summary =
       cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
