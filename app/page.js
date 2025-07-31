@@ -137,7 +137,7 @@ export default function Home() {
               </select>
               <select value={wh} onChange={e => setWh(e.target.value)} style={{ padding: 8 }}>
                 <option value="">Select Warehouse</option>
-                <option>Benny&apos;s</option><option>Michael&Norma</option>
+                <option>Michaelthepotatofarmer&apos;s</option><option>Michael&Norma</option>
               </select>
               <input value={inv} onChange={e => setInv(e.target.value)} style={{ padding: 8 }} />
               <input placeholder="Notes" value={notes} onChange={e => setNotes(e.target.value)} style={{ padding: 8 }} />
