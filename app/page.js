@@ -27,154 +27,6 @@ const catalogue = {
   ]
 };
 
-export default function Home() {
-  const [page, setPage] = useState('materials');
-  const [cart, setCart] = useState({});
-  const [employees, setEmployees] = useState([]);
-
-  const [who, setWho] = useState('');
-  const [wh, setWh] = useState('');
-
-  const todayUS = () => {
-    const d = new Date();
-    return ${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()};
-  };
-  const [inv, setInv] = useState(${todayUS()}-001);
-  const [notes, setNotes] = useState('');
-
-  const loadEmployees = () =>
-    supabase.from('employees').select('*').order('name')
-      .then(({ data }) => setEmployees(data || []));
-
-  useEffect(loadEmployees, []);
-
-  const add = id => setCart(c => ({ ...c, [id]: (c[id] || 0) + 1 }));
-  const del = id => setCart(({ [id]: _, ...rest }) => rest);
-  const setQty = (id, q) => setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
-
-  const uploadInvoice = async () => {
-    const el = document.getElementById('left-panel');
-    if (!el) return;
-    const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
-    const summary = cartEntries.map(([item, q]) => • **${item}** × ${q}).join('\n') || 'No items';
-
-    fetch(DISCORD_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: 'Raven Invoices',
-        embeds: [{
-          title: Invoice ${inv},
-          color: 0xd1b07b,
-          fields: [
-            { name: 'Employee', value: who || '—', inline: true },
-            { name: 'Warehouse', value: wh || '—', inline: true },
-            {
-              name: 'Date',
-              value: new Date().toLocaleString('en-US', {
-                timeZone: 'America/New_York', dateStyle: 'short', timeStyle: 'short'
-              }),
-              inline: false
-            },
-            { name: 'Items', value: summary, inline: false }
-          ]
-        }]
-      })
-    });
-  };
-
-  const nav = active => ({
-    padding: '6px 12px',
-    background: active ? '#d1b07b' : 'transparent',
-    color: active ? '#000' : '#d1b07b',
-    border: '1px solid #d1b07b',
-    cursor: 'pointer'
-  });
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '8px 16px', background: '#111', borderBottom: '1px solid #333'
-      }}>
-        <Image src="/raven-logo.png" alt="logo" width={60} height={60} />
-        <h1 style={{ fontSize: 28, fontWeight: 700 }}>Raven&apos;s Scrap &amp; Supply</h1>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <button style={nav(page === 'materials')} onClick={() => setPage('materials')}>Materials</button>
-          <button style={nav(page === 'database')} onClick={() => setPage('database')}>Database</button>
-        </div>
-      </header>
-
-      {page === 'materials' && (
-        <div style={{ flex: 1, display: 'flex' }}>
-          <section id="left-panel" style={{
-            flex: '1 0 320px', borderRight: '1px solid #d1b07b',
-            padding: 16, display: 'flex', flexDirection: 'column'
-          }}>
-            <h2>Receipt</h2>
-            <table style={{ width: '100%', fontSize: 14 }}>
-              <thead><tr>
-                <th>Item</th><th style={{ width: 60 }}>Qty</th><th></th>
-              </tr></thead>
-              <tbody>
-                {Object.entries(cart).filter(([, q]) => q > 0).map(([id, q]) => (
-                  <tr key={id}>
-                    <td>{id}</td>
-                    <td>
-                      <input type="number" min="0" value={q} style={{ width: 60 }}
-                        onChange={e => setQty(id, parseInt(e.target.value || 0))} />
-                    </td>
-                    <td><button onClick={() => del(id)}><Trash2 size={14} color="white" /></button></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ flex: 1 }} />
-            <footer style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <select value={who} onChange={e => setWho(e.target.value)} style={{ padding: 8 }}>
-                <option value="">Select your Name</option>
-                {employees.map(e => <option key={e.id}>{e.name}</option>)}
-              </select>
-              <select value={wh} onChange={e => setWh(e.target.value)} style={{ padding: 8 }}>
-                <option value="">Select Warehouse</option>
-                <option>Benny&apos;s</option><option>CNC</option>
-              </select>
-              <input value={inv} onChange={e => setInv(e.target.value)} style={{ padding: 8 }} />
-              <input placeholder="Notes" value={notes} onChange={e => setNotes(e.target.value)} style={{ padding: 8 }} />
-              <button onClick={uploadInvoice} style={{
-                padding: 10, background: '#d1b07b', color: '#000',
-                border: 'none', fontWeight: 600
-              }}>Upload Invoice</button>
-            </footer>
-          </section>
-
-          <section style={{ flex: 2, padding: 16 }}>
-            {Object.entries(catalogue).map(([cat, items]) => (
-              <div key={cat} style={{ marginBottom: 24 }}>
-                <h2>{cat}</h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  {items.map(it => (
-                    <button key={it} onClick={() => add(it)} style={{
-                      padding: 8, background: '#d1b07b', color: '#000',
-                      border: 'none', borderRadius: 4, fontSize: 12
-                    }}>{it}</button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </section>
-        </div>
-      )}
-
-      {page === 'database' && (
-        <DatabaseGate>
-          <DatabasePage refresh={loadEmployees} />
-        </DatabaseGate>
-      )}
-    </div>
-  );
-}
-
 function DatabaseGate({ children }) {
   const [allowed, setAllowed] = useState(false);
   const [pw, setPw] = useState('');
@@ -197,14 +49,22 @@ function DatabaseGate({ children }) {
 
 function DatabasePage({ refresh }) {
   const [employees, setEmployees] = useState([]);
+  const [materials, setMaterials] = useState([]);
+
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
+
+  const [newMaterial, setNewMaterial] = useState('');
 
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('id', { ascending: false })
       .then(({ data }) => setEmployees(data || []));
 
-  useEffect(() => { loadEmployees(); }, []);
+  const loadMaterials = () =>
+    supabase.from('materials').select('*').order('name')
+      .then(({ data }) => setMaterials(data || []));
+
+  useEffect(() => { loadEmployees(); loadMaterials(); }, []);
 
   const addEmployee = async () => {
     if (!name || !cid) return;
@@ -217,9 +77,22 @@ function DatabasePage({ refresh }) {
     await supabase.from('employees').update({ [field]: val }).eq('id', id);
     loadEmployees(); refresh();
   };
+
   const delEmployee = async id => {
     await supabase.from('employees').delete().eq('id', id);
     loadEmployees(); refresh();
+  };
+
+  const addMaterial = async () => {
+    if (!newMaterial) return;
+    await supabase.from('materials').insert({ name: newMaterial });
+    setNewMaterial('');
+    loadMaterials();
+  };
+
+  const delMaterial = async id => {
+    await supabase.from('materials').delete().eq('id', id);
+    loadMaterials();
   };
 
   return (
@@ -269,6 +142,65 @@ function DatabasePage({ refresh }) {
           ))}
         </tbody>
       </table>
+
+      <h2 style={{ marginTop: 40 }}>Materials</h2>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input placeholder="Material name" value={newMaterial} onChange={e => setNewMaterial(e.target.value)}
+          style={{ padding: 6, width: 200 }} />
+        <button onClick={addMaterial} style={{
+          padding: '6px 12px', background: '#d1b07b', border: 'none', color: '#000'
+        }}>Add</button>
+      </div>
+
+      <table style={{ width: '100%', fontSize: 14 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left' }}>Material</th>
+            <th style={{ width: 30 }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {materials.map(mat => (
+            <tr key={mat.id}>
+              <td>{mat.name}</td>
+              <td>
+                <button onClick={() => delMaterial(mat.id)} style={{
+                  background: 'red', color: '#fff', border: 'none', padding: '4px 8px'
+                }}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </main>
+  );
+}
+
+export default function Home() {
+  const [page, setPage] = useState('materials');
+
+  const loadEmployees = () =>
+    supabase.from('employees').select('*').order('name')
+      .then(({ data }) => {});
+
+  return (
+    <div>
+      {/* navigation */}
+      <button onClick={() => setPage('materials')}>Materials</button>
+      <button onClick={() => setPage('database')}>Database</button>
+
+      {page === 'database' && (
+        <DatabaseGate>
+          <DatabasePage refresh={loadEmployees} />
+        </DatabaseGate>
+      )}
+
+      {page === 'materials' && (
+        <div>
+          <h1>Material Catalogue</h1>
+          {/* show materials from `catalogue` */}
+        </div>
+      )}
+    </div>
   );
 }
