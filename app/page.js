@@ -175,28 +175,36 @@ export default function Home() {
   );
 }
 
+function DatabaseGate({ children }) {
+  const [allowed, setAllowed] = useState(false);
+  const [pw, setPw] = useState('');
+  if (allowed) return children;
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', alignItems: 'center', gap: 16
+    }}>
+      <h2>Enter Admin Password</h2>
+      <input type="password" value={pw} onChange={e => setPw(e.target.value)}
+        placeholder="Password…" style={{ padding: 8 }} />
+      <button onClick={() => pw === 'RavenAdmin' ? setAllowed(true) : alert('Incorrect')}
+        style={{ padding: '6px 18px', background: '#d1b07b', border: 'none', color: '#000' }}>
+        Unlock
+      </button>
+    </div>
+  );
+}
+
 function DatabasePage({ refresh }) {
   const [employees, setEmployees] = useState([]);
   const [name, setName] = useState('');
   const [cid, setCid] = useState('');
 
-  const [materials, setMaterials] = useState([]);
-  const [matName, setMatName] = useState('');
-  const [matCategory, setMatCategory] = useState('');
-  const [matQty, setMatQty] = useState('');
-
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('id', { ascending: false })
       .then(({ data }) => setEmployees(data || []));
 
-  const loadMaterials = () =>
-    supabase.from('materials').select('*').order('id', { ascending: false })
-      .then(({ data }) => setMaterials(data || []));
-
-  useEffect(() => {
-    loadEmployees();
-    loadMaterials();
-  }, []);
+  useEffect(() => { loadEmployees(); }, []);
 
   const addEmployee = async () => {
     if (!name || !cid) return;
@@ -209,23 +217,9 @@ function DatabasePage({ refresh }) {
     await supabase.from('employees').update({ [field]: val }).eq('id', id);
     loadEmployees(); refresh();
   };
-
   const delEmployee = async id => {
     await supabase.from('employees').delete().eq('id', id);
     loadEmployees(); refresh();
-  };
-
-  const addMaterial = async () => {
-    if (!matName || !matCategory || !matQty) return;
-    await supabase.from('materials').insert({
-      name: matName,
-      category: matCategory,
-      quantity: parseInt(matQty)
-    });
-    setMatName('');
-    setMatCategory('');
-    setMatQty('');
-    loadMaterials();
   };
 
   return (
@@ -271,34 +265,6 @@ function DatabasePage({ refresh }) {
                   background: 'red', color: '#fff', border: 'none', padding: '4px 8px'
                 }}>Delete</button>
               </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <hr style={{ margin: '32px 0', borderColor: '#555' }} />
-      <h2>Materials</h2>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Name" value={matName} onChange={e => setMatName(e.target.value)} style={{ padding: 6, width: 180 }} />
-        <input placeholder="Category" value={matCategory} onChange={e => setMatCategory(e.target.value)} style={{ padding: 6, width: 160 }} />
-        <input type="number" placeholder="Quantity" value={matQty} onChange={e => setMatQty(e.target.value)} style={{ padding: 6, width: 100 }} />
-        <button onClick={addMaterial} style={{ padding: '6px 12px', background: '#d1b07b', border: 'none', color: '#000' }}>Add</button>
-      </div>
-
-      <table style={{ width: '100%', fontSize: 14 }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: 'left', width: 180 }}>Name</th>
-            <th style={{ textAlign: 'left', width: 160 }}>Category</th>
-            <th style={{ textAlign: 'center', width: 80 }}>Quantity</th>
-          </tr>
-        </thead>
-        <tbody>
-          {materials.map(mat => (
-            <tr key={mat.id}>
-              <td style={{ padding: '4px 8px' }}>{mat.name}</td>
-              <td style={{ padding: '4px 8px' }}>{mat.category}</td>
-              <td style={{ textAlign: 'center', padding: '4px 8px' }}>{mat.quantity}</td>
             </tr>
           ))}
         </tbody>
