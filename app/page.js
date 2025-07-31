@@ -24,7 +24,7 @@ const catalogue = {
   'Extra Items': [
     'Apple Phone', 'Adv Lockpick', 'Bottle Cap', 'Deformed Nail', 'Empty Bottle Glass',
     'Horse Shoe', 'Leather', 'Lockpick', 'Old Coin', 'Pork & Beans', 'Repair Kit',
-    'Rusted Lighter', 'Rusted Tin Can', 'Rusted Watch', 'Samsung Phone'
+    'Rusted Lighter', 'Rusted Tin Can', 'Rusted Watch', 'Samsung Phone', 'Recycle Part'
   ]
 };
 
