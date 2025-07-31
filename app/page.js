@@ -182,6 +182,8 @@ function DatabasePage({ refresh }) {
 
   const [materials, setMaterials] = useState([]);
   const [matName, setMatName] = useState('');
+  const [matCategory, setMatCategory] = useState('');
+  const [matQty, setMatQty] = useState('');
 
   const loadEmployees = () =>
     supabase.from('employees').select('*').order('id', { ascending: false })
@@ -198,7 +200,7 @@ function DatabasePage({ refresh }) {
 
   const addEmployee = async () => {
     if (!name || !cid) return;
-    await supabase.from('employees').insert([{ name, cid }]);
+    await supabase.from('employees').insert({ name, cid });
     setName(''); setCid('');
     loadEmployees(); refresh();
   };
@@ -214,9 +216,15 @@ function DatabasePage({ refresh }) {
   };
 
   const addMaterial = async () => {
-    if (!matName.trim()) return;
-    await supabase.from('materials').insert([{ name: matName.trim() }]);
+    if (!matName || !matCategory || !matQty) return;
+    await supabase.from('materials').insert({
+      name: matName,
+      category: matCategory,
+      quantity: parseInt(matQty)
+    });
     setMatName('');
+    setMatCategory('');
+    setMatQty('');
     loadMaterials();
   };
 
@@ -271,20 +279,26 @@ function DatabasePage({ refresh }) {
       <hr style={{ margin: '32px 0', borderColor: '#555' }} />
       <h2>Materials</h2>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Material Name" value={matName} onChange={e => setMatName(e.target.value)} style={{ padding: 6, width: 240 }} />
+        <input placeholder="Name" value={matName} onChange={e => setMatName(e.target.value)} style={{ padding: 6, width: 180 }} />
+        <input placeholder="Category" value={matCategory} onChange={e => setMatCategory(e.target.value)} style={{ padding: 6, width: 160 }} />
+        <input type="number" placeholder="Quantity" value={matQty} onChange={e => setMatQty(e.target.value)} style={{ padding: 6, width: 100 }} />
         <button onClick={addMaterial} style={{ padding: '6px 12px', background: '#d1b07b', border: 'none', color: '#000' }}>Add</button>
       </div>
 
       <table style={{ width: '100%', fontSize: 14 }}>
         <thead>
           <tr>
-            <th style={{ textAlign: 'left', width: 240 }}>Name</th>
+            <th style={{ textAlign: 'left', width: 180 }}>Name</th>
+            <th style={{ textAlign: 'left', width: 160 }}>Category</th>
+            <th style={{ textAlign: 'center', width: 80 }}>Quantity</th>
           </tr>
         </thead>
         <tbody>
           {materials.map(mat => (
             <tr key={mat.id}>
               <td style={{ padding: '4px 8px' }}>{mat.name}</td>
+              <td style={{ padding: '4px 8px' }}>{mat.category}</td>
+              <td style={{ textAlign: 'center', padding: '4px 8px' }}>{mat.quantity}</td>
             </tr>
           ))}
         </tbody>
