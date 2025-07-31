@@ -178,7 +178,7 @@ export default function Home() {
             {Object.entries(catalogue).map(([cat, items]) => (
               <div key={cat} style={{ marginBottom: 24 }}>
                 <h2>{cat}</h2>
-               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {items.map(it => (
                     <button key={it} onClick={() => add(it)} style={{
                       padding: 8, background: '#d1b07b', color: '#000',
