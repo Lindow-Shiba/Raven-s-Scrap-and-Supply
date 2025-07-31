@@ -5,8 +5,38 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/...'; // replace with your webhook
+/* ════════ Password Gate Component ════════ */
+function DatabaseGate({ children }) {
+  const [unlocked, setUnlocked] = useState(false);
+  const [input, setInput] = useState('');
 
+  const checkPassword = () => {
+    if (input === 'yourpassword') setUnlocked(true); // 🔑 Change 'yourpassword'
+    else alert('Incorrect password');
+  };
+
+  if (!unlocked) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h2>Enter Admin Password</h2>
+        <input
+          type="password"
+          placeholder="Password"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          style={{ padding: 8, marginRight: 8 }}
+        />
+        <button onClick={checkPassword} style={{ padding: '8px 12px' }}>
+          Submit
+        </button>
+      </div>
+    );
+  }
+
+  return children;
+}
+
+/* ════════ Inventory Data ════════ */
 const catalogue = {
   'Car Internals': [
     'Axle Parts', 'Body Repair Tools', 'Brake Pads', 'Clutch Kits', 'Fuel Straps',
@@ -26,20 +56,23 @@ const catalogue = {
   ]
 };
 
+/* ════════ Main Component ════════ */
 export default function Home() {
   const [page, setPage] = useState('materials');
   const [cart, setCart] = useState({});
   const [employees, setEmployees] = useState([]);
   const [who, setWho] = useState('');
   const [wh, setWh] = useState('');
+  const [inv, setInv] = useState('');
+  const [notes, setNotes] = useState('');
+
   const todayUS = () => {
     const d = new Date();
     return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
   };
-  const [inv, setInv] = useState(`${todayUS()}-001`);
-  const [notes, setNotes] = useState('');
 
   useEffect(() => {
+    setInv(`${todayUS()}-001`);
     supabase.from('employees').select('*').order('name')
       .then(({ data }) => setEmployees(data || []));
   }, []);
@@ -52,10 +85,7 @@ export default function Home() {
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
     const summary = cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
-    let totalValue = 0;
-    const employeePay = 0;
-
-    fetch(DISCORD_WEBHOOK, {
+    fetch('https://discord.com/api/webhooks/your-webhook-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -102,6 +132,7 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Materials Page */}
       {page === 'materials' && (
         <div style={{ flex: 1, display: 'flex' }}>
           <section id="left-panel" style={{
@@ -163,6 +194,16 @@ export default function Home() {
             ))}
           </section>
         </div>
+      )}
+
+      {/* Database Page */}
+      {page === 'database' && (
+        <DatabaseGate>
+          <div style={{ padding: 20 }}>
+            <h2>Database Access Granted</h2>
+            <p>This is where you can build your admin dashboard.</p>
+          </div>
+        </DatabaseGate>
       )}
     </div>
   );
