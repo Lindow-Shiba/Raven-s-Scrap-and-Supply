@@ -5,38 +5,8 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-/* ════════ Password Gate Component ════════ */
-function DatabaseGate({ children }) {
-  const [unlocked, setUnlocked] = useState(false);
-  const [input, setInput] = useState('');
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1394330571257417770/2xNNVkVVs-5yivGIxFnVhaI6j9VKwhzjZ0Z8nn_TJ_q5VFJUHgQldmI30CJtdJt7bk_0'; // ← replace
 
-  const checkPassword = () => {
-    if (input === 'yourpassword') setUnlocked(true); // 🔑 Change 'yourpassword'
-    else alert('Incorrect password');
-  };
-
-  if (!unlocked) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h2>Enter Admin Password</h2>
-        <input
-          type="password"
-          placeholder="Password"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          style={{ padding: 8, marginRight: 8 }}
-        />
-        <button onClick={checkPassword} style={{ padding: '8px 12px' }}>
-          Submit
-        </button>
-      </div>
-    );
-  }
-
-  return children;
-}
-
-/* ════════ Inventory Data ════════ */
 const catalogue = {
   'Car Internals': [
     'Axle Parts', 'Body Repair Tools', 'Brake Pads', 'Clutch Kits', 'Fuel Straps',
@@ -56,36 +26,40 @@ const catalogue = {
   ]
 };
 
-/* ════════ Main Component ════════ */
 export default function Home() {
   const [page, setPage] = useState('materials');
   const [cart, setCart] = useState({});
   const [employees, setEmployees] = useState([]);
   const [who, setWho] = useState('');
   const [wh, setWh] = useState('');
-  const [inv, setInv] = useState('');
-  const [notes, setNotes] = useState('');
-
   const todayUS = () => {
     const d = new Date();
     return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}-${d.getFullYear()}`;
   };
+  const [inv, setInv] = useState(`${todayUS()}-001`);
+  const [notes, setNotes] = useState('');
 
-  useEffect(() => {
-    setInv(`${todayUS()}-001`);
+  const loadEmployees = () =>
     supabase.from('employees').select('*').order('name')
       .then(({ data }) => setEmployees(data || []));
-  }, []);
+
+  useEffect(loadEmployees, []);
 
   const add = id => setCart(c => ({ ...c, [id]: (c[id] || 0) + 1 }));
   const del = id => setCart(({ [id]: _, ...rest }) => rest);
   const setQty = (id, q) => setCart(c => (q > 0 ? { ...c, [id]: q } : { ...c, [id]: undefined }));
 
   const uploadInvoice = async () => {
+    const el = document.getElementById('left-panel');
+    if (!el) return;
     const cartEntries = Object.entries(cart).filter(([, q]) => q > 0);
-    const summary = cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
+    const summary =
+      cartEntries.map(([item, q]) => `• **${item}** × ${q}`).join('\n') || 'No items';
 
-    fetch('https://discord.com/api/webhooks/your-webhook-url', {
+    let totalValue = 0;
+    const employeePay = 0;
+
+    fetch(DISCORD_WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -132,7 +106,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Materials Page */}
       {page === 'materials' && (
         <div style={{ flex: 1, display: 'flex' }}>
           <section id="left-panel" style={{
@@ -182,7 +155,7 @@ export default function Home() {
             {Object.entries(catalogue).map(([cat, items]) => (
               <div key={cat} style={{ marginBottom: 24 }}>
                 <h2>{cat}</h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {items.map(it => (
                     <button key={it} onClick={() => add(it)} style={{
                       padding: 8, background: '#d1b07b', color: '#000',
@@ -196,14 +169,10 @@ export default function Home() {
         </div>
       )}
 
-      {/* Database Page */}
       {page === 'database' && (
-        <DatabaseGate>
-          <div style={{ padding: 20 }}>
-            <h2>Database Access Granted</h2>
-            <p>This is where you can build your admin dashboard.</p>
-          </div>
-        </DatabaseGate>
+        <div style={{ padding: 20 }}>
+          <h2>Database Access Placeholder</h2>
+        </div>
       )}
     </div>
   );
