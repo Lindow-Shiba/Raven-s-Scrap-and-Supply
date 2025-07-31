@@ -9,9 +9,22 @@ import { supabase } from '../lib/supabaseClient';
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1394330571257417770/2xNNVkVVs-5yivGIxFnVhaI6j9VKwhzjZ0Z8nn_TJ_q5VFJUHgQldmI30CJtdJt7bk_0';
 
 const catalogue = {
-  'Car Internals': [...],
-  Materials: [...],
-  'Extra Items': [...]
+  'Car Internals': [
+    'Axle Parts', 'Body Repair Tools', 'Brake Pads', 'Clutch Kits', 'Fuel Straps',
+    'Radiator Part', 'Suspension Parts', 'Tire Repair Kit', 'Transmission Parts', 'Wires'
+  ],
+  Materials: [
+    'Aluminium', 'Battery', 'Carbon', 'Clutch Fluid', 'Coil Spring', 'Copper',
+    'Copper Wires', 'Electronics', 'Graphite', 'Iron', 'Laminated Plastic', 'Lead',
+    'Multi-Purpose Grease', 'Paint Thinner', 'Plastic', 'Polymer', 'Polyethylene',
+    'Rubber', 'Rusted Metal', 'Scrap Metal', 'Silicone', 'Stainless Steel', 'Steel',
+    'Timing Belt', 'Gun Powder', 'Iron Ore'
+  ],
+  'Extra Items': [
+    'Apple Phone', 'Adv Lockpick', 'Bottle Cap', 'Deformed Nail', 'Empty Bottle Glass',
+    'Horse Shoe', 'Leather', 'Lockpick', 'Old Coin', 'Pork & Beans', 'Repair Kit',
+    'Rusted Lighter', 'Rusted Tin Can', 'Rusted Watch', 'Samsung Phone', 'Recycle Part'
+  ]
 };
 
 export default function Home() {
