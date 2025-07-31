@@ -177,14 +177,29 @@ function DatabasePage({ refresh }) {
 }
 
 export default function Home() {
-  // ...your Home component logic unchanged
+  const [page, setPage] = useState('materials');
+
+  const loadEmployees = () =>
+    supabase.from('employees').select('*').order('name')
+      .then(({ data }) => {});
+
   return (
     <div>
-      {/* ...rest of your UI */}
+      {/* navigation */}
+      <button onClick={() => setPage('materials')}>Materials</button>
+      <button onClick={() => setPage('database')}>Database</button>
+
       {page === 'database' && (
         <DatabaseGate>
           <DatabasePage refresh={loadEmployees} />
         </DatabaseGate>
+      )}
+
+      {page === 'materials' && (
+        <div>
+          <h1>Material Catalogue</h1>
+          {/* show materials from `catalogue` */}
+        </div>
       )}
     </div>
   );
