@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1394330571257417770/2xNNVkVVs-5yivGIxFnVhaI6j9VKwhzjZ0Z8nn_TJ_q5VFJUHgQldmI30CJtdJt7bk_0'; // ← replace
+/* ══════════════ CONFIG ══════════════ */
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/your-webhook-url'; // ← replace
 
 const catalogue = {
   'Car Internals': [
@@ -170,9 +171,9 @@ export default function Home() {
       )}
 
       {page === 'database' && (
-        <div style={{ padding: 20 }}>
-          <h2>Database Access Placeholder</h2>
-        </div>
+        <DatabaseGate>
+          <DatabasePage refresh={loadEmployees} />
+        </DatabaseGate>
       )}
     </div>
   );
