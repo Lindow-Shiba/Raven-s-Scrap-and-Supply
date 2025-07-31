@@ -27,6 +27,26 @@ const catalogue = {
   ]
 };
 
+function DatabaseGate({ children }) {
+  const [allowed, setAllowed] = useState(false);
+  const [pw, setPw] = useState('');
+  if (allowed) return children;
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      justifyContent: 'center', alignItems: 'center', gap: 16
+    }}>
+      <h2>Enter Admin Password</h2>
+      <input type="password" value={pw} onChange={e => setPw(e.target.value)}
+        placeholder="Password…" style={{ padding: 8 }} />
+      <button onClick={() => pw === 'RavenAdmin' ? setAllowed(true) : alert('Incorrect')}
+        style={{ padding: '6px 18px', background: '#d1b07b', border: 'none', color: '#000' }}>
+        Unlock
+      </button>
+    </div>
+  );
+}
+
 function DatabasePage({ refresh }) {
   const [employees, setEmployees] = useState([]);
   const [materials, setMaterials] = useState([]);
@@ -153,5 +173,19 @@ function DatabasePage({ refresh }) {
         </tbody>
       </table>
     </main>
+  );
+}
+
+export default function Home() {
+  // ...your Home component logic unchanged
+  return (
+    <div>
+      {/* ...rest of your UI */}
+      {page === 'database' && (
+        <DatabaseGate>
+          <DatabasePage refresh={loadEmployees} />
+        </DatabaseGate>
+      )}
+    </div>
   );
 }
